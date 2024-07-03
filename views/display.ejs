@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>alienbin</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/base16/atelier-lakeside.min.css" integrity="sha512-hp74CG3D7R6wUB+BaWxW0OsfrFBE+mUmhp3vYzqJwJEkQY2zY4XSJ1ajmUdraCbFw3IimJxWQayht8FbfOlppQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script>hljs.highlightAll();</script>
+    <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+    <%- include("nav.ejs") %>  
+    <div style="float:right">
+        <%- include("_button.ejs") %>  
+    </div>
+
+    <div class="wrapper">
+        <div class="line-numbers">
+            <% for (let i=1; i<= code.split('\n').length; i++){ %> <!--넘겨받은 code문자열 개행 갯수 확인후 표시-->
+                <div><%= i %></div>
+            <% } %>
+        </div>
+        <pre><code
+            id="code-display" 
+            class="<%= locals.language ? `language-${locals.language}` : ""%>"
+            ><%= code %> </code>
+        </pre>
+    </div>
+ 
+</body>
+</html>

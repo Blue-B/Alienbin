@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>alienbin</title>
+
+    <style>
+            .navbar {
+                background-color: 0F0F0F;
+                border-bottom: 1px solid #272727;
+                padding: 10px 20px;
+            }
+            .navbar .container {
+                margin: 0 auto;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .navbar a {
+                text-decoration: none;
+                color: #cbcbcb;
+            }
+            .navbar a.logo {
+                display: flex;
+                align-items: center;
+                padding-left: 2vw; /*로고 좌측 단위수정*/
+            }
+            .navbar a.logo img {
+                height:50px;
+                margin-right: 10px;
+            }
+            .navbar a.logo span {
+                font-size: 24px;
+                font-weight: bold;
+            }
+     
+            .navbar .menu-toggle {
+                display: none;
+                background: none;
+                border: none;
+            }
+            .navbar .menu-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+            .navbar .menu {
+                font-family: sans-serif; /*font*/
+                display: flex;
+                gap: 15px;
+                list-style: none;
+                margin: 0;
+                padding: 0;
+            }
+            .navbar .menu li {
+                margin: 0;
+            }
+            .navbar .menu li a {
+                padding: 5px 10px;
+                border-radius: 5px;
+                transition: background-color 0.3s;
+            }
+            .navbar .menu li a:hover {
+                background-color: #ACC4AD;
+                color:#fff;
+            }
+            @media (max-width: 768px) {
+                .navbar .menu {
+                    display: none;
+                    flex-direction: column;
+                    background-color: #272727;
+                    position: absolute;
+                    top: 60px;
+                    left: 0;
+                    width: 100%;
+                    border-top: 1px solid #ddd;
+                    padding: 10px 0;
+                }
+                .navbar .menu.show {
+                    display: flex;
+                }
+                .navbar .menu-toggle {
+                    display: block;
+                }
+            }
+        </style>
+</head>
+<body>
+        <nav class="navbar">
+            <div class="container">
+                <a href="/" class="logo">
+                    <img src="/logo.png" alt="Flowbite Logo">
+                </a>
+     
+                <!--모바일화면에 나타나는 햄버그버튼-->
+                <button class="menu-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"/>
+                    </svg>
+                </button>
+                <ul class="menu">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/about">About</a></li>
+                    <li><a href="https://t.me/local090">Contact</a></li>
+                </ul>
+            </div>
+        </nav>
+        <script>
+            document.querySelector('.menu-toggle').addEventListener('click', function() {
+                document.querySelector('.menu').classList.toggle('show');
+            });
+        </script>
+ 
+  
+</body>
+</html>

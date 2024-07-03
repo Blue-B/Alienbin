@@ -1,0 +1,108 @@
+body{
+    margin:0;
+    background-color:#0F0F0F; 
+}
+
+.wrapper{
+    display:flex;
+    padding:1rem .5rem;
+    font-size:1rem;
+}
+
+.own_wrapper{
+    display:flex;
+    justify-content: space-between;
+}
+
+pre{
+    margin:0px;
+}
+
+#code-display{
+    background-color: #0F0F0F;
+    color:rgb(222, 222, 222);
+    padding-top:0px;
+    padding-bottom: 0px;
+    font-family: sans-serif;
+}
+
+/*new,save button*/
+.btn{
+    margin: 5px;
+    font: inherit;
+    cursor: pointer;
+    background: none;
+    border: 1px solid #cbcbcb;
+    color: #cbcbcb;
+    border-radius: .25rem;
+    padding: .25rem .5rem;
+    transition: background-color 200ms ease-in-out;
+    display: inline-flex;
+    text-decoration: none;
+    line-height: normal;
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+
+.btn:hover{
+    background-color:#ACC4AD;
+    color:#ffff;
+}
+
+
+/*text 입력영역*/
+textarea{
+    background-color: transparent;
+    resize: none;
+    width: 100%;
+    margin-left: 1rem;
+    color: #828282;
+    min-height: calc(100vh - 154px);
+    flex-grow: 1;
+    line-height: 1.2; /* 줄 간격을 맞추기 위해 */
+    font-size: 14px; /* line-numbers와 같은 font-size */
+    margin: 0; /* 여백을 제거하여 수평을 맞춤 */
+    padding: 0; /* 여백을 제거하여 수평을 맞춤 */
+    border: none; /* border가 있는 경우 수평이 맞지 않을 수 있음 */
+    outline: none; /* outline이 있는 경우 수평이 맞지 않을 수 있음 */
+}
+
+
+.line-numbers{
+    color:#506e7c;
+    font-family: sans-serif; /*font*/
+    text-align: end; /* 우측정렬 두자리이상 숫자가 늘어나면 1의자리는 우측으로 붙음*/
+}
+/*line number영역*/
+#line-numbers {
+    user-select: none;
+    padding-right: 10px;
+    text-align: right;
+    border-right: 1px solid #ddd;
+    margin-right: 10px;
+    line-height: 1.2; /* 줄 간격을 맞추기 위해 */
+    font-size: 14px; /* font-size를 textarea와 맞춤 */
+}
+
+
+/*시간 만료 박스*/
+#ttlOption{
+    margin:5px;
+    margin-top:.2rem;
+    height: 35px;
+    margin-right: auto;
+    background: none;
+    border: 1px solid #cbcbcb;
+    color: #cbcbcb;
+    font-size: 0.875rem; 
+    border-radius: 0.5rem; 
+    width: 130px;
+    padding: 0.625rem; 
+}
+
+#ttlOption option {
+    /* 옵션 요소의 스타일 */
+    color: #333333; /* 옵션 글자색 */
+}
+
+

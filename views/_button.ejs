@@ -1,0 +1,33 @@
+
+<div style="margin-right:10px">
+  <a href="/"class="btn">New</a>
+  <% if (locals.canSave) { %> <!--cansave가 true일때만 버튼생성-->
+  <button class="btn" type="submit">Save</button>
+  <% } %>
+
+  <button class="btn" id="copyButton" style="display: none;">Copy URL</button>
+</div>
+
+<script>
+  function copyCurrentURL() {
+    var currentURL = window.location.href;
+    navigator.clipboard.writeText(currentURL).then(function() {
+      alert("현재 페이지의 URL이 클립보드에 복사되었습니다.");
+    }, function() {
+      alert("URL 복사에 실패했습니다. 브라우저 설정을 확인해주세요.");
+    });
+  }
+
+  // 페이지 로드 시 URL을 확인하고 URL 복사 버튼을 표시합니다, url이 display로 시작시
+  window.addEventListener('load', function() {
+    if (window.location.pathname.startsWith('/display')) {
+      var saveButton = document.getElementById('saveButton');
+      var copyButton = document.getElementById('copyButton');
+      
+      if (saveButton) saveButton.style.display = 'inline-block';
+      if (copyButton) copyButton.style.display = 'inline-block';
+    }
+  });
+
+  document.getElementById('copyButton').addEventListener('click', copyCurrentURL);
+</script>
