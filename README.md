@@ -1,5 +1,5 @@
 ## 미리보기
-![This is an alt text.](https://github.com/Blue-B/Alienbin_deploy/assets/55532956/2cdc89cd-1bc3-437a-9a1a-b07a73aa6bff)
+![This is an alt text.](https://github.com/Blue-B/Alienbin/assets/55532956/5a8929b8-7ae8-430c-9305-10e97df575b3)
 ## Links
 AlienBin과 함께라면, 당신의 아이디어는 더 이상 지구에 국한되지 않습니다. 지금 바로 시작해보세요! 
 
