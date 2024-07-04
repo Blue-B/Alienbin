@@ -89,7 +89,7 @@ app.get('/display/:id', async (req,res)=>{
     }
     catch(e){
         res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'})
-        res.write("<script>alert('페이지가 존재하지 않습니다'); window.location.href = '/';</script>")
+        res.write("<script>alert('Page Not Found'); window.location.href = '/';</script>")
 
     }
 })

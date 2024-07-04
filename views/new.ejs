@@ -9,24 +9,25 @@
 </head>
 
 <body>
-  <form action="/save" method="POST">
     <%- include("nav.ejs") %> 
-<!--상단줄-->
+    <!--상단줄-->
+
+  <form action="/save" method="POST">
     <div class="own_wrapper">
         <label for="ttlOption" style="color:#cbcbcb; margin-top:.5rem;">Expiration Time : </label>
         <select name="ttlOption" id="ttlOption">
-            <option value="off">Never</option>
+            <option value="1day">1 Day</option>
             <option value="30s">30 Second</option>
             <option value="1m">1 Minute</option>
             <option value="10m">10 Minute</option>
             <option value="30m">30 Minute</option>
             <option value="1h">1 Hour</option>
             <option value="3h">3 Hour</option>
-            <option value="1day">1 Day</option>
             <option value="7day">7 Day</option>
-
+            <option value="off">Never</option>
         </select>
-        <%- include("_button.ejs",{ canSave:true }) %>  <!--외부 ejs파일 가져다쓸때 저장버튼 활성화-->
+        
+        <%- include("_button.ejs",{ canSave:true }) %>  <!--외부 ejs파일 가져다쓸때 cansave값을 true로 저장버튼 활성화-->
     </div>
 
 <!--본문-->
@@ -47,6 +48,7 @@
 
   textarea.addEventListener('input', updateLineNumbers);
   textarea.addEventListener('scroll', syncScroll);
+  textarea.addEventListener('keydown', handleTabKey); //tab key event
 
   function updateLineNumbers() {
       const lines = textarea.value.split('\n').length;
@@ -62,6 +64,7 @@
   }
 
   updateLineNumbers();
+
 
   //TAB key event
   function handleTabKey(e) {

@@ -1,33 +1,82 @@
 
 <div style="margin-right:10px">
-  <a href="/"class="btn">New</a>
+  <a title="New document" href="/"class="btn">New</a>
   <% if (locals.canSave) { %> <!--cansave가 true일때만 버튼생성-->
-  <button class="btn" type="submit">Save</button>
+  <button title="Save Content" class="btn" type="submit">Save</button>
   <% } %>
 
-  <button class="btn" id="copyButton" style="display: none;">Copy URL</button>
+  <button title="Copy to URL" class="btn" id="copyButton" style="display: none;">Copy URL</button>
+  <button onclick="zoomIn();" class="btn" id="plus" style="display: none;">+</button>
+  <button title="Set 100% Scale" onclick="zoomReset()" class="btn" id="magnification" style="color:white; display:none;">100%</button>
+  <button onclick="zoomOut();" class="btn" id="min" style="display: none;">-</button>
 </div>
 
 <script>
   function copyCurrentURL() {
     var currentURL = window.location.href;
     navigator.clipboard.writeText(currentURL).then(function() {
-      alert("현재 페이지의 URL이 클립보드에 복사되었습니다.");
+      alert("URL Copy success!");
     }, function() {
-      alert("URL 복사에 실패했습니다. 브라우저 설정을 확인해주세요.");
+      alert("URL Failed to copy");
     });
   }
 
-  // 페이지 로드 시 URL을 확인하고 URL 복사 버튼을 표시합니다, url이 display로 시작시
+  // 페이지 로드 시 URL을 확인하고 URL 복사&화면축소 버튼을 표시합니다, url이 display로 시작시
   window.addEventListener('load', function() {
     if (window.location.pathname.startsWith('/display')) {
-      var saveButton = document.getElementById('saveButton');
-      var copyButton = document.getElementById('copyButton');
+      var copyButton = document.querySelector('#copyButton');
+      var plus = document.querySelector('#plus');
+      var min = document.querySelector('#min');
+      var magnification = document.querySelector('#magnification');
       
-      if (saveButton) saveButton.style.display = 'inline-block';
+
       if (copyButton) copyButton.style.display = 'inline-block';
+      if (plus) plus.style.display = 'inline-block';
+      if (min) min.style.display = 'inline-block';
+      if (magnification) magnification.style.display = 'inline-block';
     }
   });
 
-  document.getElementById('copyButton').addEventListener('click', copyCurrentURL);
+  document.querySelector('#copyButton').addEventListener('click', copyCurrentURL);
+
+
+// 화면 사이즈 확대축소
+  let nowZoom = 100; // 기본 비율
+
+// 화면크기 축소
+function zoomOut() {
+  nowZoom = nowZoom - 10;
+    if(nowZoom <= 70){
+      nowZoom = 70; 
+    }   
+    zooms();
+}
+
+// 화면크기 확대
+function zoomIn() {
+  nowZoom = nowZoom + 10;
+    
+    if(nowZoom >= 200){
+      nowZoom = 200;
+    }
+    zooms();
+}
+
+// 원래 화면크기로 되돌아가기
+function zoomReset() {
+  nowZoom = 100;
+    zooms();
+}
+
+function zooms() {
+  document.body.style.zoom = nowZoom + "%";
+  document.querySelector("#magnification").textContent = nowZoom + "%";
+  if(nowZoom == 70) {
+     alert("You cannot shrink any further.");   // 화면 축소율이 70% 이하일 경우 
+  }
+  if(nowZoom == 200) {
+     alert("You can't zoom in any more.");   // 화면 확대율이 200% 이상일 경우 
+  }
+}
+
 </script>
