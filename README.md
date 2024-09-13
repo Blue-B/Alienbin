@@ -31,7 +31,7 @@ Alienbin은 텍스트 공유의 새로운 차원을 열어갑니다. Pastebin에
 ## 패키지 설치
 아래 명령을 통하여 packge.json내에 필요한 패키지를 설치할 수 있습니다.
 ```
-npm install
+npm install 
 ```
 
 
