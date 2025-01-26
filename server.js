@@ -69,8 +69,9 @@ app.post('/save', async (req,res)=>{
             await db.collection('post').createIndex({ "createdAt": 1 }, { expireAfterSeconds: 604800 }) 
             result = await db.collection('post').insertOne({ value, createdAt }) 
         } 
-        else{ //영원히
-            result = await db.collection('post').insertOne({ value })
+        else{
+            // result = await db.collection('post').insertOne({ value })  //Naver
+            return res.status(400).send('Invalid TTL option.');
         }
         res.redirect(`/display/${result.insertedId}`) //결과반환
   
