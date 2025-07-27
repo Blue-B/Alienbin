@@ -5,6 +5,11 @@ const app = express()
 const port = process.env.PORT
 app.set('view engine', 'ejs')
 
+const helmet = require('helmet');
+app.use(helmet({
+  contentSecurityPolicy: false, //csp header disable, 인라인 스크립트사용
+}));
+
 app.use(express.static('public'))
 app.use(express.urlencoded({extended:true}))
 
@@ -94,6 +99,25 @@ app.get('/display/:id', async (req,res)=>{
 
     }
 })
+
+app.get('/display/:id/raw', async (req, res) => {
+    try {
+        const id = req.params.id;
+        const post = await db.collection('post').findOne({ _id: new ObjectId(id) });
+        
+        if (!post) {
+            return res.status(404).send('코드를 찾을 수 없습니다.');
+        }
+        
+        // Content-Type을 text/plain으로 설정
+        res.set('Content-Type', 'text/plain');
+        res.send(post.value);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('서버 오류');
+    }
+});
+
 
 app.get('/about', (req,res)=>{
     res.render('about',)
