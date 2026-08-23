@@ -205,6 +205,17 @@ async function loadTurnstile(container: HTMLElement): Promise<(() => string | un
 }
 
 // --- 홈 폼 ---
+/** 상태 화면(소각 확인·404·복호화 실패)에 등장하는 작은 마스코트 */
+function stateMascot(dim = false): HTMLImageElement {
+  return el("img", {
+    class: dim ? "mascot mascot-dim" : "mascot",
+    src: "/logo.png",
+    alt: "",
+    width: "84",
+    height: "84",
+  });
+}
+
 export function renderHome(container: HTMLElement): void {
   clear(container);
 
@@ -357,6 +368,13 @@ function showCreateResult(
     try {
       await navigator.clipboard.writeText(url);
       toast(t("copied"));
+      // 버튼 자체의 즉시 피드백
+      copyBtn.textContent = t("copied");
+      copyBtn.classList.add("success");
+      setTimeout(() => {
+        copyBtn.textContent = t("copyLink");
+        copyBtn.classList.remove("success");
+      }, 1600);
     } catch {
       urlInput.select();
       toast(t("copyFallback"));
@@ -452,6 +470,7 @@ function renderBurnConfirm(
   const panel = el(
     "div",
     { class: "panel center" },
+    stateMascot(),
     el("h1", { text: t("oneTimeTitle") }),
     el("p", {
       class: "warn",
@@ -519,6 +538,7 @@ function renderMissingKey(container: HTMLElement): void {
     el(
       "div",
       { class: "panel center" },
+      stateMascot(true),
       el("h1", { text: t("missingKeyTitle") }),
       el("p", {
         text: t("missingKeyDesc"),
@@ -533,6 +553,7 @@ function renderWrongKey(container: HTMLElement): void {
     el(
       "div",
       { class: "panel center" },
+      stateMascot(true),
       el("h1", { text: t("wrongKeyTitle") }),
       el("p", { text: t("wrongKeyDesc") }),
     ),
@@ -545,6 +566,7 @@ export function renderNotFound(container: HTMLElement): void {
     el(
       "div",
       { class: "panel center" },
+      stateMascot(true),
       el("h1", { text: t("notFoundTitle") }),
       el("p", { text: t("notFoundDesc") }),
       el("a", { href: "/", class: "button-link primary", text: t("notFoundCreate") }),

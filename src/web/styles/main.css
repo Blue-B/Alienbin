@@ -359,3 +359,87 @@ button:disabled {
   border-color: var(--accent);
   color: var(--accent);
 }
+
+/* === 디자인 패스: 타이포 위계 · 버튼 위계 · 상태 화면 마스코트 === */
+
+/* 타이포그래피 위계 */
+h1 {
+  font-size: clamp(1.5rem, 3.5vw, 1.8rem);
+  letter-spacing: -0.02em;
+  margin: 0.4rem 0 1rem;
+}
+
+.hero .mascot {
+  margin-bottom: 0.4rem;
+}
+
+.intro {
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+
+legend {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  color: var(--steel);
+}
+
+label {
+  font-size: 0.92rem;
+}
+
+/* 버튼 위계: primary는 채워진 세이지그린, 나머지는 아웃라인 */
+button.primary,
+.button-link.primary {
+  background: var(--accent);
+  color: #0f0f0f;
+  border-color: var(--accent);
+  font-weight: 700;
+  padding: 0.6rem 1.4rem;
+  transition:
+    filter 150ms ease,
+    transform 150ms ease;
+}
+
+button.primary:hover:not(:disabled),
+.button-link.primary:hover {
+  filter: brightness(1.08);
+}
+
+button.primary:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* 대기 중 미세 피드백 */
+button.primary:disabled {
+  animation: waiting 1.2s ease-in-out infinite;
+}
+@keyframes waiting {
+  50% {
+    opacity: 0.75;
+  }
+}
+
+/* 복사 성공 상태 */
+button.success {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* 상태 화면의 작은 마스코트 */
+.panel > .mascot {
+  align-self: center;
+  margin-bottom: 0.2rem;
+}
+
+.mascot-dim {
+  opacity: 0.55;
+  filter: grayscale(0.7);
+  drop-shadow: none;
+}
+
+/* 브랜드 워드마크 */
+.brand span {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
