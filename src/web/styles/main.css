@@ -6,15 +6,15 @@
    ============================================================ */
 
 :root {
-  --bg: #0a0a0a;
-  --surface: #131313;
-  --surface-2: #181818;
-  --hairline: rgb(255 255 255 / 0.08);
-  --hairline-strong: rgb(255 255 255 / 0.16);
-  --text: #e8e8e6;
-  --text-dim: #8f8f8c;
-  --accent: #acc4ad;
-  --accent-soft: rgb(172 196 173 / 0.12);
+  --bg: #16130f;
+  --surface: #1e1a15;
+  --surface-2: #26211a;
+  --hairline: rgb(255 236 210 / 0.09);
+  --hairline-strong: rgb(255 236 210 / 0.18);
+  --text: #ede7db;
+  --text-dim: #9c948a;
+  --accent: #a8c5a0;
+  --accent-soft: rgb(168 197 160 / 0.12);
   --steel: #506e7c;
   --danger: #f87171;
   --warn: #fbbf24;
@@ -22,25 +22,10 @@
   --radius-input: 12px;
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
   --font-display:
-    "Space Grotesk Variable",
-    system-ui,
-    -apple-system,
-    "Apple SD Gothic Neo",
-    "Noto Sans KR",
+    "Space Grotesk Variable", system-ui, -apple-system, "Apple SD Gothic Neo", "Noto Sans KR",
     sans-serif;
-  --font-mono:
-    "JetBrains Mono",
-    ui-monospace,
-    "SFMono-Regular",
-    Menlo,
-    Consolas,
-    monospace;
-  --font-body:
-    system-ui,
-    -apple-system,
-    "Apple SD Gothic Neo",
-    "Noto Sans KR",
-    sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-body: system-ui, -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
 }
 
 * {
@@ -739,5 +724,197 @@ button:not(:disabled):active,
     animation-duration: 0.01ms !important;
     /* biome-ignore lint/complexity/noImportantStyles: 접근성 오버라이드는 cascade에서 반드시 이겨야 한다 */
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* === 벤토 레이아웃 · 컬러 태그 시스템 (레퍼런스 기반 재설계) === */
+
+/* 히어로 카드: 마스코트 좌 · 카피 우 (.panel의 세로 스택을 row로 명시적 상속) */
+.hero-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 2rem;
+  padding: 2.25rem;
+  margin-bottom: 1.25rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.hero-card::before {
+  content: "";
+  position: absolute;
+  right: -60px;
+  top: -80px;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(168 197 160 / 0.1), transparent 70%);
+  pointer-events: none;
+}
+
+.hero-card .hero-copy {
+  flex: 1;
+}
+
+.hero-card .hero-mascot img {
+  width: clamp(110px, 14vw, 160px);
+}
+
+/* 벤토 피처 그리드 */
+.features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.feature-card {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-card);
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  transition:
+    transform 300ms var(--ease),
+    border-color 300ms var(--ease);
+}
+
+.feature-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--hairline-strong);
+}
+
+.feature-icon {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.3rem;
+}
+
+.feature-icon svg {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+
+.feature-card h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 600;
+}
+
+.feature-card p {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+/* 피처 톤: 뮤트 멀티 컬러 */
+.f-coral .feature-icon {
+  background: rgb(232 146 124 / 0.14);
+  color: #e8927c;
+}
+
+.f-sage .feature-icon {
+  background: rgb(168 197 160 / 0.14);
+  color: var(--accent);
+}
+
+.f-lav .feature-icon {
+  background: rgb(181 168 212 / 0.14);
+  color: #b5a8d4;
+}
+
+/* 만료 옵션: 컬러 pill 태그 (레퍼런스의 컬러 태그 시스템) */
+.exp-pill label {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  padding: 0.32rem 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  transition:
+    background 200ms var(--ease),
+    color 200ms var(--ease),
+    border-color 200ms var(--ease);
+}
+
+.exp-pill input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.exp-pill input:checked + label {
+  color: #14110c;
+  font-weight: 600;
+}
+
+.exp-pill input:focus-visible + label {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.exp-pill:hover label {
+  color: var(--text);
+  border-color: var(--hairline-strong);
+}
+
+/* 옵션별 뮤트 컬러: 체크 시 해당 컬러 채움 */
+.exp-30s input:checked + label {
+  background: #e8927c;
+  border-color: #e8927c;
+}
+.exp-1m input:checked + label {
+  background: #e5c07b;
+  border-color: #e5c07b;
+}
+.exp-10m input:checked + label {
+  background: #a8c5a0;
+  border-color: #a8c5a0;
+}
+.exp-30m input:checked + label {
+  background: #7fb8b0;
+  border-color: #7fb8b0;
+}
+.exp-1h input:checked + label {
+  background: #b5a8d4;
+  border-color: #b5a8d4;
+}
+.exp-3h input:checked + label {
+  background: #d48fa6;
+  border-color: #d48fa6;
+}
+.exp-1d input:checked + label {
+  background: #8ab4d8;
+  border-color: #8ab4d8;
+}
+.exp-7d input:checked + label {
+  background: #a08fd0;
+  border-color: #a08fd0;
+}
+
+@media (max-width: 768px) {
+  .hero-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.5rem;
+  }
+
+  .hero-card .hero-copy {
+    align-items: center;
+  }
+
+  .features {
+    grid-template-columns: 1fr;
   }
 }

@@ -211,6 +211,32 @@ async function loadTurnstile(container: HTMLElement): Promise<(() => string | un
 }
 
 // --- 홈 폼 ---
+/** 단순 스트로크 아이콘 (기하학적 마크만 허용 — taste-skill 아이콘 규칙) */
+function svgIcon(paths: string[]): SVGSVGElement {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", "0 0 24 24");
+  svg.setAttribute("fill", "none");
+  svg.setAttribute("stroke", "currentColor");
+  svg.setAttribute("stroke-width", "1.75");
+  svg.setAttribute("stroke-linecap", "round");
+  svg.setAttribute("stroke-linejoin", "round");
+  svg.setAttribute("aria-hidden", "true");
+  for (const d of paths) {
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", d);
+    svg.append(path);
+  }
+  return svg;
+}
+
+function featureCard(iconPaths: string[], title: string, desc: string, tone: string): HTMLElement {
+  const card = el("div", { class: `feature-card ${tone}` });
+  const icon = el("span", { class: "feature-icon" });
+  icon.append(svgIcon(iconPaths));
+  card.append(icon, el("h3", { text: title }), el("p", { text: desc }));
+  return card;
+}
+
 /** 상태 화면(소각 확인·404·복호화 실패)에 등장하는 작은 마스코트 */
 function stateMascot(dim = false): HTMLImageElement {
   return el("img", {
@@ -246,7 +272,12 @@ export function renderHome(container: HTMLElement): void {
     const radio = el("input", { type: "radio", name: "expiry", value: key, id: `exp-${key}` });
     if (key === "1d") radio.checked = true;
     expiryFieldset.append(
-      el("span", { class: "option" }, radio, el("label", { for: `exp-${key}`, text: key })),
+      el(
+        "span",
+        { class: `option exp-pill exp-${key}` },
+        radio,
+        el("label", { for: `exp-${key}`, text: key }),
+      ),
     );
   }
 
@@ -392,10 +423,40 @@ export function renderHome(container: HTMLElement): void {
     height: "170",
   });
   const eyebrow = el("span", { class: "eyebrow", text: "Secure · Ephemeral · Encrypted" });
-  const heroCopy = el("div", { class: "hero-copy" }, eyebrow, el("h1", { text: t("heroTitle") }), intro);
+  const heroCopy = el(
+    "div",
+    { class: "hero-copy" },
+    eyebrow,
+    el("h1", { text: t("heroTitle") }),
+    intro,
+  );
   const mascotWrap = el("div", { class: "hero-mascot" }, mascot);
-  const hero = el("div", { class: "hero" }, heroCopy, mascotWrap);
-  container.append(hero, form);
+  const hero = el("section", { class: "panel hero-card" }, mascotWrap, heroCopy);
+
+  // 벤토 피처 카드: 페이지 하단 밀도와 개성을 책임진다
+  const features = el(
+    "div",
+    { class: "features" },
+    featureCard(
+      ["M5 11h14v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-8Z", "M8 11V7a4 4 0 0 1 8 0v4"],
+      t("feat1Title"),
+      t("feat1Desc"),
+      "f-coral",
+    ),
+    featureCard(
+      ["M13 2 4.5 13.5H11L9.5 22 18 10.5H12L13 2Z"],
+      t("feat2Title"),
+      t("feat2Desc"),
+      "f-sage",
+    ),
+    featureCard(
+      ["M6 15c6 0 10-4 10-10-6 0-10 4-10 10Z", "M6 15c0-4 3-7 7-8"],
+      t("feat3Title"),
+      t("feat3Desc"),
+      "f-lav",
+    ),
+  );
+  container.append(hero, form, features);
 
   // Turnstile은 폼 렌더 직후 비동기 준비
   void loadTurnstile(turnstileBox).then((getToken) => {
