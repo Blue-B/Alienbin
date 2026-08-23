@@ -443,3 +443,76 @@ button.success {
   font-size: 1.05rem;
   font-weight: 700;
 }
+
+/* 시크릿 토글 설명 (켜면 나타남) */
+.field-hint {
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-dim);
+  border-radius: 0 8px 8px 0;
+  color: var(--text);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+/* v1 줄번호 복원 */
+.code-wrap {
+  display: flex;
+  align-items: stretch;
+}
+
+.line-numbers {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+  user-select: none;
+  color: var(--steel);
+  padding: 1rem 0.6rem 1rem 0;
+  border-right: 1px solid var(--border);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  min-width: 2.4rem;
+}
+
+.code-wrap pre {
+  flex: 1;
+  border-left: none;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.code-wrap .line-numbers {
+  border: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  border-top-left-radius: var(--radius);
+  border-bottom-left-radius: var(--radius);
+  background: var(--bg-input);
+}
+
+.code-wrap pre {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+/* About 페이지 */
+.about h1 {
+  text-align: center;
+}
+
+.about h2 {
+  font-size: 1.05rem;
+  margin: 1.4rem 0 0.4rem;
+  color: var(--accent);
+}
+
+.about p {
+  margin: 0 0 0.4rem;
+  line-height: 1.7;
+}
+
+.about-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  line-height: 1.8;
+}

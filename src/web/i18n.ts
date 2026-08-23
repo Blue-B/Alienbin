@@ -46,6 +46,24 @@ const STRINGS = {
     notFoundCreate: "Create a new paste",
     chipLanguage: "Language",
     chipExpires: "Expires",
+    navAbout: "About",
+    aboutTitle: "What is Alienbin?",
+    aboutIntro:
+      "An anonymous text-sharing service for developers. Paste code, logs, or notes, get a link, and every paste deletes itself when its time is up.",
+    aboutFeaturesTitle: "What it does well",
+    featAnon: "No account, no name — share without revealing who you are.",
+    featCode: "Syntax highlighting and TAB indentation for snippets and scripts.",
+    featPrivate: "Optional client-side encryption and one-time links for secrets.",
+    freeTitle: "Is it free?",
+    freeDesc:
+      "Yes. Alienbin runs entirely on Cloudflare's free tier — no ads, no tracking, no payment.",
+    privacyTitle: "Privacy",
+    privacyDesc:
+      "No personal information, no IP addresses in our database or logs, no visit tracking. With Secret mode the server never even sees your plaintext, and expired pastes are deleted automatically.",
+    contactTitle: "Questions or problems?",
+    contactDesc: "Reach out on Telegram or open an issue on GitHub.",
+    secretExplainer:
+      "Content is encrypted in your browser before upload. There is no separate password on purpose: the link itself is the key (#k=…), and the server only stores ciphertext. Lose the link and the content is gone for good.",
   },
   ko: {
     navNew: "새 paste",
@@ -90,6 +108,23 @@ const STRINGS = {
     notFoundCreate: "새 paste 만들기",
     chipLanguage: "언어",
     chipExpires: "만료",
+    navAbout: "소개",
+    aboutTitle: "Alienbin이 뭐 하는 곳이야?",
+    aboutIntro:
+      "개발자를 위한 익명 텍스트 공유 서비스예요. 코드, 로그, 메모를 붙여넣어 링크를 받고, 만료 시간이 지나면 저절로 사라집니다.",
+    aboutFeaturesTitle: "이런 점이 좋아요",
+    featAnon: "회원가입도 이름도 없어요. 누구인지 드러내지 않고 공유할 수 있습니다.",
+    featCode: "코드 하이라이팅과 TAB 들여쓰기를 지원해요.",
+    featPrivate: "필요하면 브라우저 암호화와 일회용 링크로 비밀도 안전하게.",
+    freeTitle: "무료인가요?",
+    freeDesc: "네. Cloudflare 무료 플랜 위에서 돌아가기 때문에 광고도, 추적도, 결제도 없습니다.",
+    privacyTitle: "개인정보 처리 방식",
+    privacyDesc:
+      "개인정보를 수집하지 않고, IP 주소를 DB나 로그에 저장하지 않고, 방문 기록을 추적하지 않습니다. 시크릿 모드에서는 서버가 평문을 아예 보지 못하고, 만료된 paste는 자동으로 삭제돼요.",
+    contactTitle: "궁금한 점이나 문제가 있으면",
+    contactDesc: "텔레그램으로 연락 주시거나 GitHub 이슈를 열어 주세요.",
+    secretExplainer:
+      "올리기 전에 브라우저에서 내용을 잠가요. 패스워드 입력이 없는 건 의도예요. 링크 자체가 열쇠(#k=…)라서 서버에는 잠긴 암호문만 저장됩니다. 대신 링크를 잃어버리면 내용도 함께 끝이니 꼭 보관하세요.",
   },
 } as const;
 

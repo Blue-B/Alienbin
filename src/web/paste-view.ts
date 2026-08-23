@@ -162,6 +162,12 @@ function toast(message: string): void {
 function codeBlock(payload: string, language: string | null): HTMLElement {
   const normalized = normalizeLanguage(language);
   const wrapper = el("div", { class: "code-wrap" });
+  // v1의 줄번호 복원. aria-hidden으로 스크린리더 중복 읽기 방지
+  const lineNumbers = el("div", { class: "line-numbers", "aria-hidden": "true" });
+  const lineCount = payload.split("\n").length;
+  for (let i = 1; i <= lineCount; i++) {
+    lineNumbers.append(el("span", { text: String(i) }));
+  }
   const pre = el("pre", {});
   const code = el("code", {});
   // 사용자 입력은 textContent로만 주입 — HTML로 실행될 수 없다
@@ -170,7 +176,7 @@ function codeBlock(payload: string, language: string | null): HTMLElement {
     code.className = `language-${normalized}`;
   }
   pre.append(code);
-  wrapper.append(pre);
+  wrapper.append(lineNumbers, pre);
   try {
     hljs.highlightElement(code);
   } catch {
@@ -228,6 +234,13 @@ export function renderHome(container: HTMLElement): void {
   });
   const payloadLabel = el("label", { for: "payload", text: t("content") });
 
+  // v1의 TAB 들여쓰기 복원
+  payloadArea.addEventListener("keydown", (event) => {
+    if (event.key !== "Tab") return;
+    event.preventDefault();
+    payloadArea.setRangeText("  ", payloadArea.selectionStart, payloadArea.selectionEnd, "end");
+  });
+
   const expiryFieldset = el("fieldset");
   expiryFieldset.append(el("legend", { text: t("expiration") }));
   for (const key of Object.keys(EXPIRATIONS)) {
@@ -240,6 +253,13 @@ export function renderHome(container: HTMLElement): void {
 
   const secretBox = el("input", { type: "checkbox", id: "secret" });
   const burnBox = el("input", { type: "checkbox", id: "burn" });
+
+  // 시크릿 토글 설명: 켜면 무엇이 일어나는지(패스워드가 없는 이유 포함) 즉시 보여준다
+  const secretHint = el("p", { class: "field-hint", text: t("secretExplainer") });
+  secretHint.hidden = true;
+  secretBox.addEventListener("change", () => {
+    secretHint.hidden = !secretBox.checked;
+  });
 
   const langSelect = el("select", { id: "language" });
   for (const lang of LANGUAGES) {
@@ -262,6 +282,7 @@ export function renderHome(container: HTMLElement): void {
       el("span", { class: "option" }, secretBox, el("label", { for: "secret", text: t("secret") })),
       el("span", { class: "option" }, burnBox, el("label", { for: "burn", text: t("burn") })),
     ),
+    secretHint,
     el(
       "div",
       { class: "lang-row" },
@@ -410,6 +431,57 @@ function showCreateResult(
       }),
     );
   }
+  container.append(panel);
+}
+
+// --- 소개 (v1 /about 복원) ---
+export function renderAbout(container: HTMLElement): void {
+  clear(container);
+  const panel = el("div", { class: "panel about" });
+  panel.append(
+    stateMascot(),
+    el("h1", { text: t("aboutTitle") }),
+    el("p", { text: t("aboutIntro") }),
+    el("h2", { text: t("aboutFeaturesTitle") }),
+    el(
+      "ul",
+      { class: "about-list" },
+      el("li", { text: t("featAnon") }),
+      el("li", { text: t("featCode") }),
+      el("li", { text: t("featPrivate") }),
+    ),
+    el("h2", { text: t("freeTitle") }),
+    el("p", { text: t("freeDesc") }),
+    el("h2", { text: t("privacyTitle") }),
+    el("p", { text: t("privacyDesc") }),
+    el("h2", { text: t("contactTitle") }),
+    el("p", { text: t("contactDesc") }),
+    el(
+      "div",
+      { class: "btn-row" },
+      el("a", {
+        href: "https://github.com/Blue-B/Alienbin",
+        target: "_blank",
+        rel: "noreferrer",
+        class: "button-link",
+        text: "GitHub",
+      }),
+      el("a", {
+        href: "https://t.me/local090",
+        target: "_blank",
+        rel: "noreferrer",
+        class: "button-link",
+        text: "Telegram",
+      }),
+      el("a", {
+        href: "https://newstroyblog.tistory.com/519",
+        target: "_blank",
+        rel: "noreferrer",
+        class: "button-link",
+        text: "Blog",
+      }),
+    ),
+  );
   container.append(panel);
 }
 
