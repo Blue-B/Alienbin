@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main, v2]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      # 배포는 의도적으로 포함하지 않는다: Cloudflare 시크릿이 리포지토리에 준비되기 전까지.
+      # 준비 후 아래 주석을 해제하고 secrets(CLOUDFLARE_API_TOKEN)을 설정할 것.
+      # - name: Deploy
+      #   if: github.ref == 'refs/heads/main'
+      #   run: npx wrangler deploy
+      #   env:
+      #     CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

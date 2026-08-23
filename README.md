@@ -1,185 +1,175 @@
 # Alienbin
 
-[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
-[![EJS](https://img.shields.io/badge/EJS-B4CA65?style=for-the-badge&logo=ejs&logoColor=black)](https://ejs.co/)
+**Secure ephemeral text sharing for developers.**
 
-> 우주 어디서든 텍스트를 공유하는 새로운 차원의 플랫폼
+> Share code, logs, and config with per-paste expiration, optional client-side encryption,
+> and true burn-after-read. Runs entirely on Cloudflare's free tier — no server to maintain.
 
-Alienbin은 Pastebin에서 영감을 받아 제작된 익명 텍스트 공유 플랫폼입니다. 간단하고 빠른 텍스트 공유부터 코드 스니펫까지, 우주 정거장처럼 다양한 아이디어와 정보를 저장하고 공유할 수 있습니다.
+[Demo] <!-- 배포 후 workers.dev URL로 채울 것 -->
+[Screenshot] <!-- 배포 후 스크린샷으로 채울 것 -->
 
-## Demo
+## Why Alienbin v2 exists
 
-![Alienbin Preview](https://github.com/Blue-B/Alienbin/assets/55532956/5a8929b8-7ae8-430c-9305-10e97df575b3)
+Alienbin v1 was a live pastebin service — and running it surfaced three structural
+problems:
 
-**Try it live: [https://alienbin.com](https://alienbin.com)**
+1. **A real security defect.** v1 recreated a collection-wide MongoDB TTL index according to
+   each request's expiration option. Because MongoDB TTL indexes apply to the whole
+   collection, one user choosing "30 seconds" could shorten every other user's paste. This
+   was published as [CVE-2026-31827 / GHSA-hqvr-6v89-gwff](https://github.com/Blue-B/Alienbin/security/advisories/GHSA-hqvr-6v89-gwff)
+   (high severity). Hiding it would be dishonest; instead it became the centerpiece of the
+   redesign — see [TTL isolation](#ttl-isolation-and-cve-fix).
+2. **Ongoing server cost with no revenue.** An always-on host plus a database cluster cost
+   money every month while serving temporary text.
+3. **No safety net.** No tests, no CI, CSP explicitly disabled, no rate limiting.
 
-## Features
+v2 is a rewrite that fixes all three *in code you can audit*: the CVE fix is a regression
+test, the cost model is documented against official quotas, and the security properties are
+covered by a dedicated test suite.
 
-- **간편한 텍스트 업로드** - 코드, 메모, 링크 등 어떤 형태의 텍스트든 쉽게 업로드
-- **우주 어디서든 공유** - 생성된 고유 URL을 통해 전 세계 즉시 공유
-- **안전한 만료 시간 설정** - 30초부터 7일까지 다양한 만료 옵션
-- **문법 강조** - Highlight.js를 통한 다양한 프로그래밍 언어 지원
-- **완전한 익명성** - 회원가입 없이 자유롭게 사용
-- **자동완성** - TAB키를 통한 들여쓰기 기능
-- **반응형 디자인** - 모든 디바이스에서 완벽한 사용자 경험
+Full analysis of v1: [docs/legacy-analysis.md](docs/legacy-analysis.md).
 
-## Tech Stack
+## What changed from v1
 
-| Technology | Purpose |
-|------------|---------|
-| ![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat&logo=node.js&logoColor=white) | JavaScript 런타임 환경 |
-| ![Express.js](https://img.shields.io/badge/Express.js-000000?style=flat&logo=express&logoColor=white) | 웹 애플리케이션 프레임워크 |
-| ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=flat&logo=mongodb&logoColor=white) | NoSQL 데이터베이스 |
-| ![EJS](https://img.shields.io/badge/EJS-B4CA65?style=flat&logo=ejs&logoColor=black) | 템플릿 엔진 |
+| | v1 | v2 |
+|---|---|---|
+| Backend | Express (Node process) | Cloudflare Workers + Hono |
+| Frontend | EJS templates | Static frontend (Vite + vanilla TS) |
+| Database | MongoDB Atlas | Cloudflare D1 |
+| Hosting | External Node platform | Serverless (Workers Static Assets) |
+| Expiration | Mongo TTL index mutation (collection-wide) | Per-record `expires_at` |
+| CSP | Explicitly disabled (`contentSecurityPolicy: false`) | Strict CSP, no `unsafe-inline` |
+| Paste IDs | Mongo ObjectId in URLs | Random ~128-bit base64url IDs |
+| Secrets | Plaintext only | Optional AES-256-GCM client-side encryption |
+| One-time view | not available | Atomic burn-after-read |
+| Tests | none (`no test specified`) | Regression + security suite (vitest) |
+| CI | none | GitHub Actions (lint/typecheck/test/build) |
+| Security policy | none | [SECURITY.md](SECURITY.md) |
 
-### Key Dependencies
+## Architecture
 
-- **Web Framework**: `express`
-- **Database**: `mongodb`, `mongoose`
-- **Template Engine**: `ejs`
-- **Environment**: `dotenv`
-- **Development**: `nodemon`
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 14 or higher
-- MongoDB database
-- npm or yarn
-
-### Installation
-
-1. Clone the repository
-   ```bash
-   git clone https://github.com/Blue-B/Alienbin.git
-   cd Alienbin
-   ```
-
-2. Install dependencies
-   ```bash
-   npm install
-   ```
-
-3. Create environment file
-   ```bash
-   # .env
-   NODE_ENV=production
-   PORT=3000
-   DB_URL='your_mongodb_connection_string'
-   ```
-
-4. Start the server
-   ```bash
-   npm start
-   # or for development
-   npx nodemon server.js
-   ```
-
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
-
-## Usage
-
-1. **텍스트 입력** - 메인 페이지에서 공유하고 싶은 텍스트나 코드를 입력
-2. **만료 시간 선택** - 30초부터 7일까지 원하는 만료 시간 설정
-3. **공유** - 생성된 고유 URL을 복사하여 어디든 공유
-4. **자동 삭제** - 설정한 시간이 지나면 자동으로 삭제
-
-### Expiration Options
-
-- 30초, 1분, 10분, 30분
-- 1시간, 3시간
-- 1일, 7일
-
-## Project Structure
-
-```
-Alienbin/
-├── server.js              # 메인 서버 파일
-├── package.json            # 프로젝트 설정 및 의존성
-├── public/                 # 정적 파일
-│   ├── style.css          # 메인 스타일시트
-│   ├── about.css          # 소개 페이지 스타일
-│   └── logo.png           # 로고 이미지
-├── views/                  # EJS 템플릿
-│   ├── new.ejs            # 메인 페이지
-│   ├── display.ejs        # 텍스트 표시 페이지
-│   ├── about.ejs          # 소개 페이지
-│   ├── nav.ejs            # 네비게이션 컴포넌트
-│   └── _button.ejs        # 버튼 컴포넌트
-└── README.md
+```mermaid
+flowchart TD
+    B["Browser / CLI"] --> W["Cloudflare Worker<br/>(Hono)"]
+    W --> SA["Static Assets<br/>(unmetered)"]
+    W --> API["API + rate limit + Turnstile check"]
+    API --> DB[("D1")]
+    CRON["Cron (hourly)"] -->|"delete expired rows"| DB
 ```
 
-## API Reference
+Details: [docs/architecture.md](docs/architecture.md) · Design decisions:
+[docs/adr/](docs/adr/)
 
-### POST /save
+## Security model
 
-텍스트를 저장하고 고유 ID를 생성합니다.
+- **Expiration is enforced by query semantics**, not by background jobs: every read filters
+  `expires_at > now`. The hourly cron only reclaims storage.
+- **Strict headers everywhere**: CSP without `unsafe-inline`, `no-store` on all dynamic
+  responses, `nosniff`, `X-Robots-Tag: noindex`, `Referrer-Policy: no-referrer`.
+- **Rate limiting**: native Workers rate limiting binding (10 writes/min/client), `429` +
+  `Retry-After`; raw IPs never stored.
+- **Turnstile** on web creates as an additional bot-friction layer; the API itself relies on
+  rate limiting since the CLI is public.
+- Threat-by-threat analysis with residual risks: [docs/security-design.md](docs/security-design.md)
 
-**Body Parameters:**
-- `value` - 저장할 텍스트 내용
-- `ttlOption` - 만료 시간 옵션 (30s, 1m, 10m, 30m, 1h, 3h, 1day, 7day)
+## Client-side encryption
 
-**Response:** 생성된 게시물의 고유 URL로 리디렉션
+Secret pastes are encrypted **in your browser** before anything leaves it:
 
-### GET /display/:id
+1. A fresh 256-bit key is generated locally; content is AES-GCM encrypted
+   (`v1.<iv>.<ciphertext>` format, protocol-bound via AAD).
+2. The server receives ciphertext plus `SHA-256(key)` as an access proof — never plaintext,
+   never the key.
+3. The key travels only in the URL fragment: `https://…/p/<id>#k=<key>`. Fragments are not
+   sent to servers, so the Worker physically cannot decrypt what it stores.
 
-저장된 텍스트를 조회합니다.
+Lose the fragment → the paste is unrecoverable by design.
 
-**Path Parameters:**
-- `id` - 게시물의 고유 식별자
+## Burn after reading
 
-**Response:** 텍스트 내용이 포함된 표시 페이지
+One-time pastes are consumed atomically — a single
+`DELETE … WHERE id = ? AND burn_after_read = 1 AND expires_at > ? RETURNING …`.
+Concurrent readers race on one DELETE: exactly one gets the content, everyone else gets 404.
+GET requests can never consume a paste, so crawlers and link previews are harmless.
+Rationale: [ADR-004](docs/adr/adr-004-burn-after-read-atomic-consume.md).
 
-## Contributing
+## TTL isolation and CVE fix
 
-기여를 환영합니다! 다음과 같이 참여할 수 있습니다:
+The v1 implementation recreated a collection-wide MongoDB TTL index according to each
+request's expiration option. Because MongoDB TTL indexes apply at the collection level, one
+user's expiration choice could affect other stored documents — published as
+[CVE-2026-31827](https://github.com/Blue-B/Alienbin/security/advisories/GHSA-hqvr-6v89-gwff).
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Alienbin v2 removes collection-level TTL mutation entirely and stores `expires_at` on each
+paste. Every read path enforces expiry independently of any cron job, and a regression test
+proves that a 7-day paste outlives a concurrent 30-second paste. See
+[ADR-002](docs/adr/adr-002-per-record-expires-at.md) and the release checklist in
+[docs/security-release-checklist.md](docs/security-release-checklist.md).
 
-### Development Guidelines
+## Zero-fixed-cost architecture
 
-- Node.js 및 Express.js 모범 사례 준수
-- MongoDB 쿼리 최적화
-- EJS 템플릿 구조 유지
-- 명확한 커밋 메시지 작성
+Static assets are unmetered on Cloudflare; only dynamic API calls count against the free
+100k/day quota, and D1's free tier covers far more reads/writes than this service plausibly
+needs. At currently expected traffic Alienbin runs with **$0 fixed cost** — not "free
+forever", but free within documented quotas. Numbers and sources:
+[docs/operations.md](docs/operations.md).
 
-## Support the Project
+## Tech stack
 
-Alienbin이 도움이 되었다면 개발을 지원해주세요!
+TypeScript (strict) · Hono · Cloudflare Workers + D1 + Cron Triggers + Turnstile ·
+Vite + vanilla TS frontend · highlight.js (bundled, rendered via `textContent`) ·
+Vitest + `@cloudflare/vitest-pool-workers` (real D1 behavior) · Biome
 
-[![GitHub Sponsors](https://img.shields.io/badge/Sponsor-GitHub-EA4AAA?style=for-the-badge&logo=github-sponsors&logoColor=white)](https://github.com/sponsors/Blue-B)
-[![Buy Me A Coffee](https://img.shields.io/badge/Buy_Me_A_Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/beckycode7h)
+## Local development
 
-여러분의 지원이 Alienbin을 더욱 발전시킵니다.
+```bash
+npm install
+cp .dev.vars.example .dev.vars   # Turnstile 공식 테스트 키 포함
+npm run dev                      # local D1 migration + wrangler dev
+```
 
-## Blog
+## Tests
 
-더 자세한 정보: [개발 블로그](https://newstroyblog.tistory.com/519)
+```bash
+npm test          # unit + integration + security suites (miniflare D1)
+```
 
-## License
+Covered: TTL isolation regression, expired lookup, cron deletion, invalid TTL/payload/ID,
+XSS payload handling, SQL-injection resistance, encryption round-trip & wrong-key failure,
+access proof enforcement, burn-after-read single consumption, concurrent consume race,
+rate limiting, raw endpoint MIME/policy, security header presence.
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## Deployment
 
-## Acknowledgments
+```bash
+wrangler d1 create alienbin       # database_id를 wrangler.jsonc에 반영
+npm run db:migrate:remote
+wrangler secret put TURNSTILE_SECRET_KEY
+npm run deploy                    # https://alienbin.<subdomain>.workers.dev
+```
 
-- [Express.js](https://expressjs.com/) for the robust web framework
-- [MongoDB](https://www.mongodb.com/) for flexible data storage
-- [EJS](https://ejs.co/) for powerful templating
-- [Highlight.js](https://highlightjs.org/) for syntax highlighting
+Custom domain (`alienbin.com`) is optional — the service is fully functional on
+`workers.dev`.
 
----
+## CLI
 
-<div align="center">
+Zero-dependency Node CLI (same wire format as the web app):
 
-**Made with ❤️ by [Blue-B](https://github.com/Blue-B)**
+```bash
+cat error.log | alienbin --expire 1h
+alienbin app.py --secret --once --expire 10m
+# → https://<host>/p/<id>#k=<secret>
+```
 
-If you found this project helpful, please consider giving it a ⭐
+Host override via `ALIENBIN_BASE_URL`. Local testing: `npm run build && npm link`.
 
-</div>
+## Security
+
+See [SECURITY.md](SECURITY.md) for reporting policy. Please do not open public issues with
+exploit details.
+
+## Legacy v1
+
+v1 is preserved under the `v1-legacy` tag. It is end-of-life and should not be deployed;
+see [docs/migration.md](docs/migration.md) for why legacy data was intentionally not
+migrated (ephemeral by design).
