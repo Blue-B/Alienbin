@@ -392,7 +392,8 @@ export function renderHome(container: HTMLElement): void {
     width: "150",
     height: "150",
   });
-  const hero = el("div", { class: "hero" }, mascot, heading);
+  const eyebrow = el("span", { class: "eyebrow", text: "Secure · Ephemeral · Encrypted" });
+  const hero = el("div", { class: "hero" }, eyebrow, mascot, heading);
   container.append(hero, intro, form);
 
   // Turnstile은 폼 렌더 직후 비동기 준비
@@ -458,7 +459,12 @@ function showCreateResult(
       "div",
       { class: "btn-row" },
       copyBtn,
-      el("a", { href: url, class: "button-link primary", text: t("open") }),
+      el(
+        "a",
+        { href: url, class: "button-link primary open-link" },
+        el("span", { text: t("open") }),
+        el("span", { class: "chip-icon", text: "↗" }),
+      ),
     ),
   );
   if (encrypted) {

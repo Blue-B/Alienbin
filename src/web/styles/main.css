@@ -650,3 +650,160 @@ button:not(:disabled):active,
 .button-link:active {
   transform: scale(0.98);
 }
+
+/* === 프리미엄 폴리시: 플로팅 내비 · 필 버튼 · 더블베젤 · 엔트리 모션 === */
+:root {
+  --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* 스크롤 시 본문이 헤더를 덮던 z-index 버그 수정 + 플로팅 글래스 필 내비 */
+.topbar {
+  position: sticky;
+  top: 0.75rem;
+  z-index: 10;
+  width: min(880px, calc(100% - 2rem));
+  margin: 0.75rem auto 0;
+  border: 1px solid rgb(255 255 255 / 0.08);
+  border-bottom: 1px solid rgb(255 255 255 / 0.08);
+  border-radius: 999px;
+  padding: 0.55rem 1.15rem;
+  background: rgb(17 17 17 / 0.72);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 32px rgb(0 0 0 / 0.4);
+}
+
+/* 필 버튼 시스템 */
+button,
+.button-link {
+  border-radius: 999px;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  background: rgb(255 255 255 / 0.04);
+  padding: 0.55rem 1.25rem;
+  font-weight: 500;
+  transition:
+    background 300ms var(--ease-out),
+    border-color 300ms var(--ease-out),
+    box-shadow 300ms var(--ease-out),
+    transform 300ms var(--ease-out);
+}
+
+button:hover:not(:disabled),
+.button-link:hover {
+  background: rgb(255 255 255 / 0.08);
+  border-color: rgb(255 255 255 / 0.2);
+  transform: translateY(-1px);
+}
+
+button.primary,
+.button-link.primary {
+  background: linear-gradient(180deg, #b9cfba, #a2bca3);
+  border-color: transparent;
+  color: #0d120d;
+  font-weight: 600;
+  box-shadow: 0 4px 20px rgb(172 196 173 / 0.22);
+}
+
+button.primary:hover:not(:disabled),
+.button-link.primary:hover {
+  box-shadow: 0 8px 30px rgb(172 196 173 / 0.38);
+  transform: translateY(-1px);
+}
+
+button.danger {
+  border-color: rgb(248 113 113 / 0.4);
+  color: var(--danger);
+  background: rgb(248 113 113 / 0.08);
+}
+
+/* 더블베젤 패널: 헤어라인 + 내부 하이라이트 + 큰 반경 */
+.paste-form,
+.panel {
+  border-radius: 1.5rem;
+  border: 1px solid rgb(255 255 255 / 0.07);
+  background: linear-gradient(180deg, #161616, #111);
+  padding: 1.75rem;
+  box-shadow:
+    0 24px 60px rgb(0 0 0 / 0.45),
+    inset 0 1px 0 rgb(255 255 255 / 0.05);
+}
+
+/* 인풋 포커스 링 */
+textarea:focus,
+select:focus,
+input[type="text"].result-url:focus {
+  border-color: rgb(172 196 173 / 0.55);
+  outline: none;
+}
+
+/* 엔트리 모션: 히어로 → 폼 순차 등장 */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hero {
+  animation: rise 700ms var(--ease-out) both;
+}
+
+.paste-form,
+.panel {
+  animation: rise 700ms var(--ease-out) 120ms both;
+}
+
+/* 아이 브로우 배지 */
+.eyebrow {
+  display: inline-block;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 999px;
+  padding: 0.25rem 0.8rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.9rem;
+  font-family:
+    ui-monospace,
+    "SFMono-Regular",
+    Menlo,
+    Consolas,
+    monospace;
+}
+
+/* 버튼-인-버튼: 열어보기 ↗ */
+.open-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.open-link .chip-icon {
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 50%;
+  background: rgb(13 18 13 / 0.18);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  transition: transform 300ms var(--ease-out);
+}
+
+.open-link:hover .chip-icon {
+  transform: translate(2px, -2px);
+}
+
+/* 토스트가 내비 위에 오도록 */
+.toast {
+  z-index: 60;
+}
+
+/* 그레인은 최상단(포인터 이벤트 없음) */
+body::after {
+  z-index: 50;
+}
