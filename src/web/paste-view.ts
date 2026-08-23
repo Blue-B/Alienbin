@@ -254,16 +254,28 @@ export function renderHome(container: HTMLElement): void {
   const secretBox = el("input", { type: "checkbox", id: "secret" });
   const burnBox = el("input", { type: "checkbox", id: "burn" });
 
-  // burn 켜면 열람 횟수 선택(1/3/5/10) 표시
-  const burnCountBox = el("span", { class: "option burn-count" });
-  burnCountBox.hidden = true;
+  // burn 켜면 열람 횟수 선택(1/3/5/10)이 토글 바로 아래 라벨과 함께 나타난다
+  let burnReads = 1;
+  const burnCountRow = el("div", { class: "field-hint burn-count-row" });
+  burnCountRow.hidden = true;
+  const segmentGroup = el("span", { class: "segment-group", role: "group" });
+  segmentGroup.setAttribute("aria-label", t("burnCountLabel"));
   for (const n of [1, 3, 5, 10]) {
-    const radio = el("input", { type: "radio", name: "burnCount", value: String(n), id: `bc-${n}` });
-    if (n === 1) radio.checked = true;
-    burnCountBox.append(radio, el("label", { for: `bc-${n}`, text: tf("reads", n) }));
+    const seg = el("button", { type: "button", class: "segment", text: tf("reads", n) });
+    if (n === 1) seg.classList.add("active");
+    seg.addEventListener("click", () => {
+      burnReads = n;
+      for (const b of segmentGroup.querySelectorAll("button")) b.classList.remove("active");
+      seg.classList.add("active");
+    });
+    segmentGroup.append(seg);
   }
+  burnCountRow.append(
+    el("span", { class: "burn-count-label", text: t("burnCountLabel") }),
+    segmentGroup,
+  );
   burnBox.addEventListener("change", () => {
-    burnCountBox.hidden = !burnBox.checked;
+    burnCountRow.hidden = !burnBox.checked;
   });
 
   // 시크릿 토글 설명: 켜면 무엇이 일어나는지(패스워드가 없는 이유 포함) 즉시 보여준다
@@ -293,8 +305,8 @@ export function renderHome(container: HTMLElement): void {
       { class: "toggles" },
       el("span", { class: "option" }, secretBox, el("label", { for: "secret", text: t("secret") })),
       el("span", { class: "option" }, burnBox, el("label", { for: "burn", text: t("burn") })),
-      burnCountBox,
     ),
+    burnCountRow,
     secretHint,
     el(
       "div",
@@ -351,9 +363,7 @@ export function renderHome(container: HTMLElement): void {
       language: langSelect.value,
       accessProof: accessProofHash,
       encryptionVersion: encrypted ? 1 : undefined,
-      maxReads: burnAfterRead
-        ? Number(form.querySelector<HTMLInputElement>("input[name='burnCount']:checked")?.value ?? 1)
-        : undefined,
+      maxReads: burnAfterRead ? burnReads : undefined,
       turnstileToken: getTurnstileToken?.(),
     });
     submitBtn.disabled = false;
@@ -697,7 +707,11 @@ function renderContentView(
   } else if (remainingReads != null && remainingReads > 0) {
     // N회용 burn: 아직 남은 횟수를 보여준다
     panel.append(
-      el("span", { class: "chip reads-left", role: "status", text: tf("readsLeft", remainingReads) }),
+      el("span", {
+        class: "chip reads-left",
+        role: "status",
+        text: tf("readsLeft", remainingReads),
+      }),
     );
   }
   panel.append(codeBlock(payload, language));

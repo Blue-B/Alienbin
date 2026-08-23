@@ -516,3 +516,137 @@ button.success {
   padding-left: 1.2rem;
   line-height: 1.8;
 }
+
+/* === 디자인 폴리시: 폰트 분리 · 그레인 · 세이지 글로우 · 세그먼트 컨트롤 === */
+
+/* 본문은 시스템 산세리프, 코드·브랜드·제목은 모노. 모노뿐인 화면의 답답함 해소 */
+body {
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Apple SD Gothic Neo",
+    "Noto Sans KR",
+    sans-serif;
+}
+
+.brand span,
+h1,
+h2,
+code,
+pre,
+.chip,
+.segment,
+.result-url {
+  font-family:
+    ui-monospace,
+    "SFMono-Regular",
+    "JetBrains Mono",
+    Menlo,
+    Consolas,
+    monospace;
+}
+
+/* 은은한 그레인 + 세이지 틴트 비네트 (보라 그라데이션 금지) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(ellipse 60% 40% at 50% -5%, rgb(172 196 173 / 0.06), transparent 70%);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
+
+.topbar,
+main#app,
+.foot {
+  position: relative;
+  z-index: 1;
+}
+
+/* 스티키 반투명 탑바 */
+.topbar {
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(10px);
+  background: rgb(15 15 15 / 0.82);
+}
+
+/* 패널 그림자: 순 검정 대신 배경 틴트를 머금은 그림자 + 상단 하이라이트 */
+.paste-form,
+.panel {
+  box-shadow:
+    0 12px 40px rgb(0 0 0 / 0.35),
+    inset 0 1px 0 rgb(255 255 255 / 0.03);
+}
+
+.hero .mascot {
+  filter: drop-shadow(0 6px 24px rgb(172 196 173 / 0.22));
+}
+
+/* 열람 횟수 세그먼트 컨트롤 (burn 하위 옵션임을 색으로 구분) */
+.burn-count-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-left-color: var(--warn);
+  background: rgb(251 191 36 / 0.05);
+}
+
+.burn-count-label {
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.segment-group {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.segment {
+  border: none;
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-dim);
+  padding: 0.35rem 0.85rem;
+  font-size: 0.85rem;
+  transition:
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.segment:last-child {
+  border-right: none;
+}
+
+.segment:hover {
+  color: var(--text);
+  background: var(--bg-panel);
+}
+
+.segment.active {
+  background: var(--accent);
+  color: #0f0f0f;
+  font-weight: 600;
+}
+
+/* 눌림 피드백 */
+button:not(:disabled):active,
+.button-link:active {
+  transform: scale(0.98);
+}

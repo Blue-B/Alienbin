@@ -68,7 +68,7 @@ const STRINGS = {
     contactTitle: "Questions or problems?",
     contactDesc: "Reach out on Telegram or open an issue on GitHub.",
     secretExplainer:
-      "Turn on to store the content encrypted. The key travels inside the link, so only people with the link can read it — not even the server. If you lose the link, the content can't be recovered.",
+      "The content is stored encrypted. The key travels inside the link, so only people with the link can read it — not even the server. If you lose the link, the content can't be recovered.",
   },
   ko: {
     navNew: "새 paste",
@@ -133,7 +133,7 @@ const STRINGS = {
     contactTitle: "궁금한 점이나 문제가 있으면",
     contactDesc: "텔레그램으로 연락 주시거나 GitHub 이슈를 열어 주세요.",
     secretExplainer:
-      "켜면 내용이 암호화된 상태로 저장돼요. 열쇠는 링크에 붙어서 나가기 때문에 링크를 받은 사람만 볼 수 있고, 서버도 내용을 볼 수 없어요. 대신 링크를 잃어버리면 복구할 수 없으니 주의하세요.",
+      "내용이 암호화된 상태로 저장돼요. 열쇠는 링크에 붙어서 나가기 때문에 링크를 받은 사람만 볼 수 있고, 서버도 내용을 볼 수 없어요. 대신 링크를 잃어버리면 복구할 수 없으니 주의하세요.",
   },
 } as const;
 
