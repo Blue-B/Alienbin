@@ -47,7 +47,13 @@ export class PasteService {
           createdAt: now,
           expiresAt,
         });
-        return { id, expiresAt, encrypted: input.encrypted, burnAfterRead: input.burnAfterRead };
+        return {
+          id,
+          expiresAt,
+          encrypted: input.encrypted,
+          burnAfterRead: input.burnAfterRead,
+          ...(input.burnAfterRead ? { maxReads: input.maxReads } : {}),
+        };
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         if (!msg.includes("UNIQUE")) throw e;

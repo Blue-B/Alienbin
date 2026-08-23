@@ -252,31 +252,34 @@ export function renderHome(container: HTMLElement): void {
   }
 
   const secretBox = el("input", { type: "checkbox", id: "secret" });
-  const burnBox = el("input", { type: "checkbox", id: "burn" });
-
-  // burn 켜면 열람 횟수 선택(1/3/5/10)이 토글 바로 아래 라벨과 함께 나타난다
-  let burnReads = 1;
-  const burnCountRow = el("div", { class: "field-hint burn-count-row" });
-  burnCountRow.hidden = true;
+  // 열람 제한: 무제한(기본) 또는 N회. 1회 = 열면 즉시 삭제(기존의 소각)
+  let readLimit: number | null = null;
+  const limitHint = el("p", { class: "field-hint limit-hint" });
+  limitHint.hidden = true;
   const segmentGroup = el("span", { class: "segment-group", role: "group" });
-  segmentGroup.setAttribute("aria-label", t("burnCountLabel"));
-  for (const n of [1, 3, 5, 10]) {
-    const seg = el("button", { type: "button", class: "segment", text: tf("reads", n) });
-    if (n === 1) seg.classList.add("active");
+  segmentGroup.setAttribute("aria-label", t("readLimit"));
+  for (const n of [null, 1, 3, 5, 10]) {
+    const seg = el("button", {
+      type: "button",
+      class: "segment",
+      text: n === null ? t("limitUnlimited") : tf("reads", n),
+    });
+    if (n === null) seg.classList.add("active");
     seg.addEventListener("click", () => {
-      burnReads = n;
+      readLimit = n;
       for (const b of segmentGroup.querySelectorAll("button")) b.classList.remove("active");
       seg.classList.add("active");
+      if (n === null) {
+        limitHint.hidden = true;
+      } else {
+        limitHint.textContent = n === 1 ? t("limitOnceHint") : tf("limitMultiHint", n);
+        limitHint.hidden = false;
+      }
     });
     segmentGroup.append(seg);
   }
-  burnCountRow.append(
-    el("span", { class: "burn-count-label", text: t("burnCountLabel") }),
-    segmentGroup,
-  );
-  burnBox.addEventListener("change", () => {
-    burnCountRow.hidden = !burnBox.checked;
-  });
+  const limitRow = el("div", { class: "limit-row" });
+  limitRow.append(el("span", { class: "limit-label", text: t("readLimit") }), segmentGroup);
 
   // 시크릿 토글 설명: 켜면 무엇이 일어나는지(패스워드가 없는 이유 포함) 즉시 보여준다
   const secretHint = el("p", { class: "field-hint", text: t("secretExplainer") });
@@ -296,18 +299,19 @@ export function renderHome(container: HTMLElement): void {
   const submitBtn = el("button", { type: "submit", class: "primary", text: t("create") });
 
   const form = el("form", { class: "paste-form" });
+  const securityFieldset = el("fieldset", { class: "security" });
+  securityFieldset.append(el("legend", { text: t("securityLegend") }));
+  securityFieldset.append(
+    el("span", { class: "option" }, secretBox, el("label", { for: "secret", text: t("secret") })),
+    secretHint,
+    limitRow,
+    limitHint,
+  );
   form.append(
     payloadLabel,
     payloadArea,
     expiryFieldset,
-    el(
-      "div",
-      { class: "toggles" },
-      el("span", { class: "option" }, secretBox, el("label", { for: "secret", text: t("secret") })),
-      el("span", { class: "option" }, burnBox, el("label", { for: "burn", text: t("burn") })),
-    ),
-    burnCountRow,
-    secretHint,
+    securityFieldset,
     el(
       "div",
       { class: "lang-row" },
@@ -331,7 +335,7 @@ export function renderHome(container: HTMLElement): void {
     const expiresIn =
       form.querySelector<HTMLInputElement>("input[name='expiry']:checked")?.value ?? "1d";
     const encrypted = secretBox.checked;
-    const burnAfterRead = burnBox.checked;
+    const burnAfterRead = readLimit !== null;
 
     // 서버와 동일한 UTF-8 byte 기준 사전 검사 (413 방지 UX)
     const limit = encrypted ? 320 * 1024 : 256 * 1024;
@@ -363,7 +367,7 @@ export function renderHome(container: HTMLElement): void {
       language: langSelect.value,
       accessProof: accessProofHash,
       encryptionVersion: encrypted ? 1 : undefined,
-      maxReads: burnAfterRead ? burnReads : undefined,
+      maxReads: readLimit ?? undefined,
       turnstileToken: getTurnstileToken?.(),
     });
     submitBtn.disabled = false;
@@ -401,7 +405,13 @@ let getTurnstileToken: (() => string | undefined) | undefined;
 
 function showCreateResult(
   container: HTMLElement,
-  data: { id: string; expiresAt: number; encrypted: boolean; burnAfterRead: boolean },
+  data: {
+    id: string;
+    expiresAt: number;
+    encrypted: boolean;
+    burnAfterRead: boolean;
+    maxReads?: number;
+  },
   fragment: string,
   encrypted: boolean,
 ): void {
@@ -438,8 +448,10 @@ function showCreateResult(
       el("dd", { text: formatExpiry(data.expiresAt) }),
       el("dt", { text: t("encrypted") }),
       el("dd", { text: data.encrypted ? t("yes") : t("no") }),
-      el("dt", { text: t("burnAfterRead") }),
-      el("dd", { text: data.burnAfterRead ? t("yes") : t("no") }),
+      el("dt", { text: t("resultLimit") }),
+      el("dd", {
+        text: data.burnAfterRead ? tf("reads", data.maxReads ?? 1) : t("limitUnlimited"),
+      }),
     ),
     urlInput,
     el(
@@ -572,7 +584,7 @@ function renderBurnConfirm(
     "div",
     { class: "panel center" },
     stateMascot(),
-    el("h1", { text: t("oneTimeTitle") }),
+    el("h1", { text: (meta.maxReads ?? 1) > 1 ? t("limitTitle") : t("oneTimeTitle") }),
     el("p", {
       class: "warn",
       text: multi ? tf("multiDesc", remaining) : t("oneTimeDesc"),

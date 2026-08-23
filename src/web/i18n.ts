@@ -11,7 +11,13 @@ const STRINGS = {
     placeholder: "Paste your code, log, or text here…",
     expiration: "Expiration",
     secret: "Secret encryption",
-    burn: "Burn after reading",
+    readLimit: "Read limit",
+    securityLegend: "Security",
+    limitUnlimited: "Unlimited",
+    limitOnceHint:
+      "Opens once, then it's deleted immediately. If many people open it at the same time, only the first one sees it.",
+    limitMultiHint: (n: number) =>
+      `Opens up to ${n} times. It disappears when the reads run out or it expires.`,
     language: "Language",
     create: "Create secure paste",
     errEmpty: "Please enter some content.",
@@ -22,7 +28,7 @@ const STRINGS = {
     resultTitle: "Paste created",
     expiresAt: "Expires at",
     encrypted: "Encrypted",
-    burnAfterRead: "Burn after reading",
+    resultLimit: "Read limit",
     yes: "Yes",
     no: "No",
     copyLink: "Copy link",
@@ -32,6 +38,7 @@ const STRINGS = {
     keyWarning:
       "This link contains the key. Save it — if you lose it, the content can't be recovered.",
     oneTimeTitle: "One-time paste",
+    limitTitle: "Read-limited paste",
     oneTimeDesc: "This link can be opened once. After that it's gone for good.",
     multiDesc: (n: number) =>
       `This link can be opened up to ${n} times. Each view uses one of them.`,
@@ -78,7 +85,12 @@ const STRINGS = {
     placeholder: "공유할 코드나 로그를 붙여넣어 보세요…",
     expiration: "만료 시간",
     secret: "비밀글 암호화",
-    burn: "읽으면 소각",
+    readLimit: "열람 제한",
+    securityLegend: "보안 옵션",
+    limitUnlimited: "무제한",
+    limitOnceHint: "한 번 열면 바로 삭제돼요. 여러 명이 동시에 열어도 처음 한 명만 볼 수 있어요.",
+    limitMultiHint: (n: number) =>
+      `최대 ${n}번 열 수 있어요. 횟수를 다 쓰거나 만료되면 사라집니다.`,
     language: "언어",
     create: "보안 paste 만들기",
     errEmpty: "내용이 비어 있어요. 붙여넣은 게 있는지 확인해 주세요.",
@@ -89,7 +101,7 @@ const STRINGS = {
     resultTitle: "링크가 준비됐어요",
     expiresAt: "만료 시각",
     encrypted: "암호화",
-    burnAfterRead: "읽으면 소각",
+    resultLimit: "열람 제한",
     yes: "켜짐",
     no: "꺼짐",
     copyLink: "링크 복사",
@@ -98,6 +110,7 @@ const STRINGS = {
     open: "열어보기",
     keyWarning: "이 링크에 열쇠가 들어 있어요. 잃어버리면 내용을 복구할 수 없으니 꼭 보관하세요.",
     oneTimeTitle: "일회용 paste",
+    limitTitle: "열람 제한 paste",
     oneTimeDesc: "이 링크는 딱 한 번 열 수 있어요. 열고 나면 완전히 사라집니다.",
     multiDesc: (n: number) =>
       `이 링크는 최대 ${n}번까지 열 수 있어요. 열 때마다 횟수가 차감됩니다.`,
@@ -154,7 +167,7 @@ export function t(key: StringKey): string {
 }
 
 /** 파라미터가 필요한 키용 */
-export type FnKey = "errTooLarge" | "multiDesc" | "reads" | "readsLeft";
+export type FnKey = "errTooLarge" | "multiDesc" | "limitMultiHint" | "reads" | "readsLeft";
 
 export function tf(key: FnKey, n: number): string {
   return STRINGS[current][key](n);

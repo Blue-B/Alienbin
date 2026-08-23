@@ -21,6 +21,8 @@ export interface CreatePasteResponse {
   expiresAt: number;
   encrypted: boolean;
   burnAfterRead: boolean;
+  /** burn=true일 때만 존재 */
+  maxReads?: number;
 }
 
 /** GET /api/pastes/:id/meta 응답 — payload는 절대 포함하지 않는다 */
