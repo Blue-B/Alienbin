@@ -333,7 +333,16 @@ export function renderHome(container: HTMLElement): void {
     class: "intro",
     text: "Ephemeral · Private · Disposable — 개발자용 보안 텍스트 공유",
   });
-  container.append(intro, heading, form);
+  // v1의 외계인 마스코트 정체성 복원 (PRD #29)
+  const mascot = el("img", {
+    class: "mascot",
+    src: "/logo.png",
+    alt: "클립보드를 든 Alienbin 외계인 마스코트",
+    width: "150",
+    height: "150",
+  });
+  const hero = el("div", { class: "hero" }, mascot, heading);
+  container.append(hero, intro, form);
 
   // Turnstile은 폼 렌더 직후 비동기 준비
   void loadTurnstile(turnstileBox).then((getToken) => {

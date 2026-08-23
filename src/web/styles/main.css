@@ -1,13 +1,14 @@
-/* Alienbin v2 — minimal · dark · developer tool · space inspired */
+/* Alienbin v2 — v1 정체성(검정 배경 + 세이지그린 + 외계인 마스코트)을 현대적으로 다듬은 테마 */
 :root {
-  --bg: #0b0e14;
-  --bg-panel: #11151f;
-  --bg-input: #0e121b;
-  --border: #232a3a;
-  --text: #d7dce6;
-  --text-dim: #8b93a7;
-  --accent: #5eead4;
-  --accent-dim: #2dd4bf33;
+  --bg: #0f0f0f;
+  --bg-panel: #161616;
+  --bg-input: #121212;
+  --border: #272727;
+  --text: #dedede;
+  --text-dim: #828282;
+  --accent: #acc4ad;
+  --accent-dim: #acc4ad26;
+  --steel: #506e7c;
   --danger: #f87171;
   --warn: #fbbf24;
   --radius: 10px;
@@ -22,9 +23,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background:
-    radial-gradient(ellipse at 20% -10%, #14203a66 0%, transparent 55%),
-    radial-gradient(ellipse at 85% 110%, #1a143066 0%, transparent 50%), var(--bg);
+  background: var(--bg);
   color: var(--text);
   font-family: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, Consolas, monospace;
   line-height: 1.55;
@@ -71,6 +70,19 @@ main#app {
 .intro {
   color: var(--text-dim);
   font-size: 0.9rem;
+}
+
+/* v1 마스코트 히어로 */
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.mascot {
+  filter: drop-shadow(0 4px 18px rgba(172, 196, 173, 0.14));
 }
 
 h1 {
