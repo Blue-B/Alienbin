@@ -1,0 +1,4 @@
+# 로컬 개발용 시크릿 예시. 실제 값은 .dev.vars(gitignored)에 넣는다.
+# Turnstile 공식 테스트 키: 항상 통과하는 더미 키 (https://developers.cloudflare.com/turnstile/troubleshooting/testing/)
+TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
+APP_ENV=development

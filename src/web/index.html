@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alienbin — secure ephemeral text sharing</title>
+    <link rel="icon" href="/logo.png" type="image/png" />
+    <link rel="stylesheet" href="./styles/main.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/">
+        <img src="/logo.png" alt="" width="28" height="28" />
+        <span>alienbin</span>
+      </a>
+      <nav>
+        <a href="/" id="nav-new">New paste</a>
+      </nav>
+    </header>
+
+    <main id="app">
+      <!-- main.ts가 경로(/ 또는 /p/:id)에 따라 이 안을 렌더링한다 -->
+      <noscript>Alienbin v2 requires JavaScript.</noscript>
+    </main>
+
+    <footer class="foot">
+      <span>Ephemeral · Private · Disposable</span>
+    </footer>
+
+    <div id="toast-region" aria-live="polite"></div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

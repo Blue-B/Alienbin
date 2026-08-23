@@ -1,2 +1,4 @@
-User-agent: Yeti
-Allow:/
+User-agent: *
+Disallow: /p/
+Disallow: /raw/
+Disallow: /api/

@@ -1,7 +1,5 @@
-/. history
-
-/0.png
-
-/.env
-
-/node_modules
+node_modules/
+dist/
+.wrangler/
+.dev.vars
+*.local

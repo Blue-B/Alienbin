@@ -1,0 +1,39 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "alienbin",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2025-01-01",
+  "assets": {
+    "directory": "./dist/client",
+    "binding": "ASSETS",
+    // /p/:id 같은 페이지 경로는 index.html로 폴백(SPA 방식)
+    "not_found_handling": "single-page-application",
+    // API/raw 경로는 정적 에셋보다 워커 우선
+    "run_worker_first": ["/api/*", "/raw/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "alienbin",
+      // 실제 database_id는 배포 단계에서 `wrangler d1 create alienbin` 결과로 채움
+      "database_id": "PLACEHOLDER_RUN_D1_CREATE",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "triggers": {
+    "crons": ["0 * * * *"]
+  },
+  "ratelimits": [
+    {
+      "name": "RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 10, "period": 60 }
+    }
+  ],
+  "vars": {}
+  // secrets (wrangler secret put):
+  //   TURNSTILE_SECRET_KEY : Turnstile 서버 검증용 시크릿
+  //   RATE_LIMIT_PEPPER    : IP 해시용 페퍼(옵션, rate limiter가 native binding이라 현재 미사용)
+  // vars:
+  //   TURNSTILE_SITE_KEY   : 공개 사이트 키 (비시크릿이므로 vars에 둠)
+}
