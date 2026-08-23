@@ -27,6 +27,7 @@ import swift from "highlight.js/lib/languages/swift";
 import typescript from "highlight.js/lib/languages/typescript";
 import xml from "highlight.js/lib/languages/xml";
 import yaml from "highlight.js/lib/languages/yaml";
+import { t, tf } from "./i18n";
 import "highlight.js/styles/github-dark.css";
 
 import { EXPIRATIONS, ID_PATTERN, LANGUAGES } from "../shared/constants";
@@ -207,17 +208,17 @@ async function loadTurnstile(container: HTMLElement): Promise<(() => string | un
 export function renderHome(container: HTMLElement): void {
   clear(container);
 
-  const heading = el("h1", { text: "New secure paste" });
+  const heading = el("h1", { text: t("homeHeading") });
   const payloadArea = el("textarea", {
     id: "payload",
     rows: "14",
-    placeholder: "Paste your code, log, or text here…",
+    placeholder: t("placeholder"),
     spellcheck: "false",
   });
-  const payloadLabel = el("label", { for: "payload", text: "Content" });
+  const payloadLabel = el("label", { for: "payload", text: t("content") });
 
   const expiryFieldset = el("fieldset");
-  expiryFieldset.append(el("legend", { text: "Expiration" }));
+  expiryFieldset.append(el("legend", { text: t("expiration") }));
   for (const key of Object.keys(EXPIRATIONS)) {
     const radio = el("input", { type: "radio", name: "expiry", value: key, id: `exp-${key}` });
     if (key === "1d") radio.checked = true;
@@ -237,7 +238,7 @@ export function renderHome(container: HTMLElement): void {
 
   const turnstileBox = el("div", { id: "turnstile-box", class: "turnstile-box" });
   const errorLine = el("p", { class: "form-error", role: "alert" });
-  const submitBtn = el("button", { type: "submit", class: "primary", text: "Create secure paste" });
+  const submitBtn = el("button", { type: "submit", class: "primary", text: t("create") });
 
   const form = el("form", { class: "paste-form" });
   form.append(
@@ -247,23 +248,13 @@ export function renderHome(container: HTMLElement): void {
     el(
       "div",
       { class: "toggles" },
-      el(
-        "span",
-        { class: "option" },
-        secretBox,
-        el("label", { for: "secret", text: "Secret encryption" }),
-      ),
-      el(
-        "span",
-        { class: "option" },
-        burnBox,
-        el("label", { for: "burn", text: "Burn after reading" }),
-      ),
+      el("span", { class: "option" }, secretBox, el("label", { for: "secret", text: t("secret") })),
+      el("span", { class: "option" }, burnBox, el("label", { for: "burn", text: t("burn") })),
     ),
     el(
       "div",
       { class: "lang-row" },
-      el("label", { for: "language", text: "Language" }),
+      el("label", { for: "language", text: t("language") }),
       langSelect,
     ),
     turnstileBox,
@@ -276,7 +267,7 @@ export function renderHome(container: HTMLElement): void {
     errorLine.textContent = "";
     const payload = payloadArea.value;
     if (!payload.trim()) {
-      errorLine.textContent = "내용을 입력하세요.";
+      errorLine.textContent = t("errEmpty");
       return;
     }
 
@@ -289,7 +280,7 @@ export function renderHome(container: HTMLElement): void {
     const limit = encrypted ? 320 * 1024 : 256 * 1024;
     let body = payload;
     if (byteLength(body) > limit) {
-      errorLine.textContent = `내용이 너무 큽니다 (최대 ${Math.floor(limit / 1024)} KiB).`;
+      errorLine.textContent = tf("errTooLarge", Math.floor(limit / 1024));
       return;
     }
 
@@ -301,7 +292,7 @@ export function renderHome(container: HTMLElement): void {
       accessProofHash = await accessProof(key);
       fragment = `#k=${base64UrlEncode(key)}`;
       if (byteLength(body) > limit) {
-        errorLine.textContent = "암호화 후 크기가 한도를 초과합니다.";
+        errorLine.textContent = t("errEncryptTooLarge");
         return;
       }
     }
@@ -321,9 +312,7 @@ export function renderHome(container: HTMLElement): void {
 
     if (!result.ok) {
       errorLine.textContent =
-        result.status === 429
-          ? "요청이 너무 많습니다. 잠시 후 다시 시도하세요."
-          : `생성 실패: ${result.message}`;
+        result.status === 429 ? t("errRateLimited") : `${t("errCreateFailed")}${result.message}`;
       return;
     }
     showCreateResult(container, result.data, fragment, encrypted);
@@ -331,7 +320,7 @@ export function renderHome(container: HTMLElement): void {
 
   const intro = el("p", {
     class: "intro",
-    text: "Ephemeral · Private · Disposable — 개발자용 보안 텍스트 공유",
+    text: t("tagline"),
   });
   // v1의 외계인 마스코트 정체성 복원 (PRD #29)
   const mascot = el("img", {
@@ -363,43 +352,43 @@ function showCreateResult(
   const urlInput = el("input", { type: "text", readonly: "", value: url, class: "result-url" });
   urlInput.setAttribute("aria-label", "Generated paste URL");
 
-  const copyBtn = el("button", { type: "button", text: "Copy link" });
+  const copyBtn = el("button", { type: "button", text: t("copyLink") });
   copyBtn.addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(url);
-      toast("링크가 복사되었습니다.");
+      toast(t("copied"));
     } catch {
       urlInput.select();
-      toast("자동 복사 실패 — URL을 선택해 직접 복사하세요.");
+      toast(t("copyFallback"));
     }
   });
 
   const panel = el("div", { class: "panel result-panel" });
   panel.append(
-    el("h1", { text: "Paste created" }),
+    el("h1", { text: t("resultTitle") }),
     el(
       "dl",
       { class: "meta-list" },
-      el("dt", { text: "Expires at" }),
+      el("dt", { text: t("expiresAt") }),
       el("dd", { text: formatExpiry(data.expiresAt) }),
-      el("dt", { text: "Encrypted" }),
-      el("dd", { text: data.encrypted ? "Yes" : "No" }),
-      el("dt", { text: "Burn after reading" }),
-      el("dd", { text: data.burnAfterRead ? "Yes" : "No" }),
+      el("dt", { text: t("encrypted") }),
+      el("dd", { text: data.encrypted ? t("yes") : t("no") }),
+      el("dt", { text: t("burnAfterRead") }),
+      el("dd", { text: data.burnAfterRead ? t("yes") : t("no") }),
     ),
     urlInput,
     el(
       "div",
       { class: "btn-row" },
       copyBtn,
-      el("a", { href: url, class: "button-link primary", text: "Open" }),
+      el("a", { href: url, class: "button-link primary", text: t("open") }),
     ),
   );
   if (encrypted) {
     panel.append(
       el("p", {
         class: "warn",
-        text: "이 URL에는 복호화 키(#k=…)이 포함되어 있습니다. 이 URL을 잃어버리면 내용을 복구할 수 없습니다.",
+        text: t("keyWarning"),
       }),
     );
   }
@@ -458,17 +447,17 @@ function renderBurnConfirm(
   const revealBtn = el("button", {
     type: "button",
     class: "danger primary",
-    text: "Reveal and destroy",
+    text: t("reveal"),
   });
   const panel = el(
     "div",
     { class: "panel center" },
-    el("h1", { text: "One-time paste" }),
+    el("h1", { text: t("oneTimeTitle") }),
     el("p", {
       class: "warn",
-      text: "This paste can only be viewed once. Opening it will permanently delete it.",
+      text: t("oneTimeDesc"),
     }),
-    el("p", { text: `Expires at ${formatExpiry(meta.expiresAt)}` }),
+    el("p", { text: `${t("expiresAt")}: ${formatExpiry(meta.expiresAt)}` }),
     revealBtn,
   );
   revealBtn.addEventListener("click", () => {
@@ -521,7 +510,7 @@ function renderEncryptedView(container: HTMLElement, id: string, key: Uint8Array
       renderWrongKey(container);
     }
   })();
-  container.append(el("p", { class: "loading", text: "Decrypting…" }));
+  container.append(el("p", { class: "loading", text: t("decrypting") }));
 }
 
 function renderMissingKey(container: HTMLElement): void {
@@ -530,9 +519,9 @@ function renderMissingKey(container: HTMLElement): void {
     el(
       "div",
       { class: "panel center" },
-      el("h1", { text: "Encryption key is missing." }),
+      el("h1", { text: t("missingKeyTitle") }),
       el("p", {
-        text: "URL fragment(#k=…)에 복호화 키가 없습니다. 키는 서버에 저장되지 않으므로 복구할 수 없습니다.",
+        text: t("missingKeyDesc"),
       }),
     ),
   );
@@ -544,8 +533,8 @@ function renderWrongKey(container: HTMLElement): void {
     el(
       "div",
       { class: "panel center" },
-      el("h1", { text: "Unable to decrypt this paste." }),
-      el("p", { text: "키가 올바르지 않거나 데이터가 손상되었습니다." }),
+      el("h1", { text: t("wrongKeyTitle") }),
+      el("p", { text: t("wrongKeyDesc") }),
     ),
   );
 }
@@ -556,9 +545,9 @@ export function renderNotFound(container: HTMLElement): void {
     el(
       "div",
       { class: "panel center" },
-      el("h1", { text: "Paste not found" }),
-      el("p", { text: "존재하지 않거나 만료되었거나 이미 소모된 paste입니다." }),
-      el("a", { href: "/", class: "button-link primary", text: "Create a new paste" }),
+      el("h1", { text: t("notFoundTitle") }),
+      el("p", { text: t("notFoundDesc") }),
+      el("a", { href: "/", class: "button-link primary", text: t("notFoundCreate") }),
     ),
   );
 }
@@ -578,8 +567,8 @@ function renderContentView(
     el(
       "div",
       { class: "view-head" },
-      el("span", { class: "chip", text: `Language: ${language ?? "auto"}` }),
-      el("span", { class: "chip", text: `Expires: ${formatExpiry(expiresAt)}` }),
+      el("span", { class: "chip", text: `${t("chipLanguage")}: ${language ?? "auto"}` }),
+      el("span", { class: "chip", text: `${t("chipExpires")}: ${formatExpiry(expiresAt)}` }),
     ),
   );
   if (destroyed) {
@@ -587,7 +576,7 @@ function renderContentView(
       el("p", {
         class: "destroyed-banner",
         role: "status",
-        text: "This content has now been destroyed.",
+        text: t("destroyed"),
       }),
     );
   }

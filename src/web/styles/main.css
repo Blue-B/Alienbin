@@ -332,3 +332,30 @@ button:disabled {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* KO/EN 언어 토글 */
+.lang-group {
+  display: inline-flex;
+  gap: 0.25rem;
+  margin-left: 0.5rem;
+}
+
+.lang-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.lang-toggle:hover {
+  color: var(--text);
+}
+
+.lang-toggle.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}

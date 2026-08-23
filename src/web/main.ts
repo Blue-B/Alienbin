@@ -1,7 +1,18 @@
 import { ID_PATTERN } from "../shared/constants";
+import { initLang, mountLangToggle, t } from "./i18n";
 import { renderHome, renderViewer } from "./paste-view";
 
+// 언어 결정(localStorage > 브라우저 설정)을 가장 먼저 확정한다.
+initLang();
+
 const app = document.getElementById("app");
+const toggleGroup = document.getElementById("lang-toggle");
+
+if (toggleGroup) {
+  mountLangToggle(toggleGroup);
+  const navNew = document.getElementById("nav-new");
+  if (navNew) navNew.textContent = t("navNew");
+}
 
 if (app) {
   const path = window.location.pathname;
