@@ -5,8 +5,8 @@ export type Lang = "en" | "ko";
 const STRINGS = {
   en: {
     navNew: "New paste",
-    tagline: "Ephemeral · Private · Disposable — secure text sharing for developers",
-    homeHeading: "New secure paste",
+    tagline: "Secure text sharing for developers. Every paste deletes itself when its time is up.",
+    heroTitle: "Paste it. Share it. Gone.",
     content: "Content",
     placeholder: "Paste your code, log, or text here…",
     expiration: "Expiration",
@@ -79,8 +79,8 @@ const STRINGS = {
   },
   ko: {
     navNew: "새 paste",
-    tagline: "올리고, 나누고, 저절로 사라진다. 개발자의 보안 텍스트 공유",
-    homeHeading: "paste 만들기",
+    tagline: "코드, 로그, 메모를 링크 하나로 공유하세요. 만료되면 저절로 사라집니다.",
+    heroTitle: "올리고, 나누고, 사라진다",
     content: "내용",
     placeholder: "공유할 코드나 로그를 붙여넣어 보세요…",
     expiration: "만료 시간",
@@ -202,7 +202,8 @@ export function mountLangToggle(container: HTMLElement): void {
         window.location.reload();
       }
     });
-    container.append(btn);
+    // Body.append(workers-types)와의 타입 충돌을 피하려고 insertAdjacentElement 사용
+    container.insertAdjacentElement("beforeend", btn);
   };
   make("en", "EN");
   make("ko", "KO");

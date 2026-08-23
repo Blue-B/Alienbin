@@ -225,7 +225,6 @@ function stateMascot(dim = false): HTMLImageElement {
 export function renderHome(container: HTMLElement): void {
   clear(container);
 
-  const heading = el("h1", { text: t("homeHeading") });
   const payloadArea = el("textarea", {
     id: "payload",
     rows: "14",
@@ -384,17 +383,19 @@ export function renderHome(container: HTMLElement): void {
     class: "intro",
     text: t("tagline"),
   });
-  // v1의 외계인 마스코트 정체성 복원 (PRD #29)
+  // v1의 외계인 마스코트 정체성 복원 (PRD #29) — 비대칭 히어로: 카피 좌, 마스코트 우
   const mascot = el("img", {
     class: "mascot",
     src: "/logo.png",
     alt: "클립보드를 든 Alienbin 외계인 마스코트",
-    width: "150",
-    height: "150",
+    width: "170",
+    height: "170",
   });
   const eyebrow = el("span", { class: "eyebrow", text: "Secure · Ephemeral · Encrypted" });
-  const hero = el("div", { class: "hero" }, eyebrow, mascot, heading);
-  container.append(hero, intro, form);
+  const heroCopy = el("div", { class: "hero-copy" }, eyebrow, el("h1", { text: t("heroTitle") }), intro);
+  const mascotWrap = el("div", { class: "hero-mascot" }, mascot);
+  const hero = el("div", { class: "hero" }, heroCopy, mascotWrap);
+  container.append(hero, form);
 
   // Turnstile은 폼 렌더 직후 비동기 준비
   void loadTurnstile(turnstileBox).then((getToken) => {
@@ -509,20 +510,6 @@ export function renderAbout(container: HTMLElement): void {
         rel: "noreferrer",
         class: "button-link",
         text: "GitHub",
-      }),
-      el("a", {
-        href: "https://t.me/local090",
-        target: "_blank",
-        rel: "noreferrer",
-        class: "button-link",
-        text: "Telegram",
-      }),
-      el("a", {
-        href: "https://newstroyblog.tistory.com/519",
-        target: "_blank",
-        rel: "noreferrer",
-        class: "button-link",
-        text: "Blog",
       }),
     ),
   );

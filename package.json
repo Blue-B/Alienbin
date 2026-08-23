@@ -20,8 +20,10 @@
     "db:migrate:remote": "wrangler d1 execute alienbin --remote --file migrations/0001_initial.sql"
   },
   "dependencies": {
-    "hono": "^4.6.0",
-    "highlight.js": "^11.10.0"
+    "@fontsource-variable/space-grotesk": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "highlight.js": "^11.10.0",
+    "hono": "^4.6.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.0",

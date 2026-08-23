@@ -1,3 +1,4 @@
+/// <reference path="./globals.d.ts" />
 /// <reference types="@cloudflare/vitest-pool-workers/types" />
 /// <reference types="@cloudflare/workers-types" />
 // 테스트 격리 DB 준비: 워커 시작 시 마이그레이션을 1회 적용한다.

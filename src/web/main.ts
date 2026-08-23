@@ -1,4 +1,7 @@
 import { ID_PATTERN } from "../shared/constants";
+import "@fontsource-variable/space-grotesk";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/600.css";
 import { initLang, mountLangToggle, t } from "./i18n";
 import { renderAbout, renderHome, renderViewer } from "./paste-view";
 
