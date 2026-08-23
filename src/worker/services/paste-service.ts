@@ -42,6 +42,7 @@ export class PasteService {
           encryptionVersion: input.encryptionVersion ?? null,
           accessProof: input.accessProof ?? null,
           burnAfterRead: input.burnAfterRead,
+          maxReads: input.maxReads,
           language: input.language,
           createdAt: now,
           expiresAt,
@@ -58,11 +59,15 @@ export class PasteService {
   async meta(id: string): Promise<PasteMetaResponse> {
     const row = await this.repo.findMeta(id, clock.now());
     if (!row) throw notFound();
+    const burn = row.burn_after_read === 1;
     return {
       encrypted: row.encrypted === 1,
-      burnAfterRead: row.burn_after_read === 1,
+      burnAfterRead: burn,
       expiresAt: row.expires_at,
       language: row.language,
+      ...(burn && row.max_reads != null
+        ? { maxReads: row.max_reads, remainingReads: Math.max(0, row.max_reads - row.read_count) }
+        : {}),
     };
   }
 
@@ -79,16 +84,21 @@ export class PasteService {
     };
   }
 
-  /** burn 소비. DELETE...RETURNING 덕에 동시 요청 중 정확히 하나만 성공한다. */
-  async consume(id: string, proof: string | null): Promise<PasteContentResponse> {
+  /** burn 소비. DELETE(1회용) 또는 UPDATE(N회용) RETURNING 덕에 동시 요청 중 남은 횟수만 성공한다. */
+  async consume(
+    id: string,
+    proof: string | null,
+  ): Promise<PasteContentResponse & { remainingReads: number }> {
     const row = await this.repo.consumeBurn(id, clock.now(), proof);
     if (!row) throw notFound();
+    const remaining = Math.max(0, row.max_reads - row.read_count);
     return {
       payload: row.payload,
       encrypted: row.encrypted === 1,
       burnAfterRead: true,
       language: row.language,
       expiresAt: row.expires_at,
+      remainingReads: remaining,
     };
   }
 

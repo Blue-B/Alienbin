@@ -11,6 +11,7 @@ export interface CreatePasteInput {
   accessProof?: string;
   encryptionVersion?: number;
   turnstileToken?: string;
+  maxReads?: number;
 }
 
 export type ApiResult<T> = { ok: true; data: T } | { ok: false; status: number; message: string };
@@ -64,8 +65,11 @@ export function getContent(id: string, proof?: string): Promise<ApiResult<PasteC
   return request<PasteContentResponse>(`/api/pastes/${id}/content`, { proof });
 }
 
-export function consume(id: string, proof?: string): Promise<ApiResult<PasteContentResponse>> {
-  return request<PasteContentResponse>(`/api/pastes/${id}/consume`, {
+export function consume(
+  id: string,
+  proof?: string,
+): Promise<ApiResult<PasteContentResponse & { remainingReads: number }>> {
+  return request<PasteContentResponse & { remainingReads: number }>(`/api/pastes/${id}/consume`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(proof ? { accessProof: proof } : {}),

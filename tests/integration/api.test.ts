@@ -133,4 +133,41 @@ describe("paste 생성·조회 기본 플로우", () => {
     expect(last?.status).toBe(429);
     expect(last?.headers.get("retry-after")).toBeTruthy();
   });
+
+  test("N회용 burn — maxReads만큼 열리고 소진 후 404, meta에 잔여 횟수", async () => {
+    const { id } = await createOk({
+      payload: "three reads",
+      burnAfterRead: true,
+      maxReads: 3,
+    });
+
+    // meta에 남은 횟수 노출
+    const meta = await SELF.fetch(`https://example.com/api/pastes/${id}/meta`);
+    const metaBody = (await meta.json()) as { maxReads?: number; remainingReads?: number };
+    expect(metaBody.maxReads).toBe(3);
+    expect(metaBody.remainingReads).toBe(3);
+
+    // 3번까지 성공, 남은 횟수 감소
+    for (let i = 3; i >= 1; i--) {
+      const res = await SELF.fetch(`https://example.com/api/pastes/${id}/consume`, {
+        method: "POST",
+      });
+      expect(res.status).toBe(i === 3 ? 200 : 200);
+      const body = (await res.json()) as { remainingReads: number };
+      expect(body.remainingReads).toBe(i - 1);
+    }
+
+    // 소진 후 404
+    const exhausted = await SELF.fetch(`https://example.com/api/pastes/${id}/consume`, {
+      method: "POST",
+    });
+    expect(exhausted.status).toBe(404);
+  });
+
+  test("N회용 burn — 잘못된 maxReads는 400", async () => {
+    const res = await createPaste({ burnAfterRead: true, maxReads: 0 });
+    expect(res.status).toBe(400);
+    const res2 = await createPaste({ burnAfterRead: true, maxReads: 101 });
+    expect(res2.status).toBe(400);
+  });
 });

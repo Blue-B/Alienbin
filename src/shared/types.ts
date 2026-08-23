@@ -10,6 +10,8 @@ export interface CreatePasteRequest {
   /** encrypted=true일 때 필수, 현재 1 고정 */
   encryptionVersion?: number;
   burnAfterRead: boolean;
+  /** burn=true일 때 유효. 1~100회. 기본 1 */
+  maxReads?: number;
   language?: string | null;
 }
 
@@ -27,6 +29,10 @@ export interface PasteMetaResponse {
   burnAfterRead: boolean;
   expiresAt: number;
   language: string | null;
+  /** burn paste일 때만 존재 */
+  maxReads?: number;
+  /** burn paste일 때만 존재. 아직 열 수 있는 횟수 */
+  remainingReads?: number;
 }
 
 /** GET /api/pastes/:id/content, POST /api/pastes/:id/consume 응답 */

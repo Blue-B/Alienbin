@@ -33,6 +33,17 @@ export function validateId(id: string): string {
 
 export interface PastedCreateInput extends CreatePasteRequest {
   language: string | null;
+  maxReads: number;
+}
+
+/** burn paste의 열람 허용 횟수. 1~100, 기본 1. 비burn은 항상 1(무의미). */
+function normalizeMaxReads(raw: unknown, burn: boolean): number {
+  const n = typeof raw === "number" ? Math.floor(raw) : 1;
+  if (!burn) return 1;
+  if (!Number.isFinite(n) || n < 1 || n > 100) {
+    throw new AppError(400, "INVALID_MAX_READS", "maxReads must be between 1 and 100.");
+  }
+  return n;
 }
 
 /**
@@ -93,6 +104,7 @@ export function validateCreate(body: unknown): PastedCreateInput {
     encryptionVersion: encrypted ? ENCRYPTION_VERSION : undefined,
     accessProof,
     burnAfterRead,
+    maxReads: normalizeMaxReads(b.maxReads, burnAfterRead),
     language: normalizeLanguage(b.language),
   };
 }

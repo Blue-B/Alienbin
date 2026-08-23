@@ -254,6 +254,18 @@ export function renderHome(container: HTMLElement): void {
   const secretBox = el("input", { type: "checkbox", id: "secret" });
   const burnBox = el("input", { type: "checkbox", id: "burn" });
 
+  // burn 켜면 열람 횟수 선택(1/3/5/10) 표시
+  const burnCountBox = el("span", { class: "option burn-count" });
+  burnCountBox.hidden = true;
+  for (const n of [1, 3, 5, 10]) {
+    const radio = el("input", { type: "radio", name: "burnCount", value: String(n), id: `bc-${n}` });
+    if (n === 1) radio.checked = true;
+    burnCountBox.append(radio, el("label", { for: `bc-${n}`, text: tf("reads", n) }));
+  }
+  burnBox.addEventListener("change", () => {
+    burnCountBox.hidden = !burnBox.checked;
+  });
+
   // 시크릿 토글 설명: 켜면 무엇이 일어나는지(패스워드가 없는 이유 포함) 즉시 보여준다
   const secretHint = el("p", { class: "field-hint", text: t("secretExplainer") });
   secretHint.hidden = true;
@@ -281,6 +293,7 @@ export function renderHome(container: HTMLElement): void {
       { class: "toggles" },
       el("span", { class: "option" }, secretBox, el("label", { for: "secret", text: t("secret") })),
       el("span", { class: "option" }, burnBox, el("label", { for: "burn", text: t("burn") })),
+      burnCountBox,
     ),
     secretHint,
     el(
@@ -338,6 +351,9 @@ export function renderHome(container: HTMLElement): void {
       language: langSelect.value,
       accessProof: accessProofHash,
       encryptionVersion: encrypted ? 1 : undefined,
+      maxReads: burnAfterRead
+        ? Number(form.querySelector<HTMLInputElement>("input[name='burnCount']:checked")?.value ?? 1)
+        : undefined,
       turnstileToken: getTurnstileToken?.(),
     });
     submitBtn.disabled = false;
@@ -527,17 +543,20 @@ export function renderViewer(container: HTMLElement, id: string): void {
 function renderBurnConfirm(
   container: HTMLElement,
   id: string,
-  meta: { encrypted: boolean; expiresAt: number },
+  meta: { encrypted: boolean; expiresAt: number; maxReads?: number; remainingReads?: number },
   key: Uint8Array | null,
 ): void {
   if (meta.encrypted && !key) {
     renderMissingKey(container);
     return;
   }
+  const max = meta.maxReads ?? 1;
+  const remaining = meta.remainingReads ?? max;
+  const multi = max > 1;
   const revealBtn = el("button", {
     type: "button",
     class: "danger primary",
-    text: t("reveal"),
+    text: multi ? t("open") : t("reveal"),
   });
   const panel = el(
     "div",
@@ -546,7 +565,7 @@ function renderBurnConfirm(
     el("h1", { text: t("oneTimeTitle") }),
     el("p", {
       class: "warn",
-      text: t("oneTimeDesc"),
+      text: multi ? tf("multiDesc", remaining) : t("oneTimeDesc"),
     }),
     el("p", { text: `${t("expiresAt")}: ${formatExpiry(meta.expiresAt)}` }),
     revealBtn,
@@ -573,9 +592,10 @@ function renderBurnConfirm(
         container,
         result.data.language,
         payload,
-        true,
+        result.data.remainingReads === 0,
         false,
         result.data.expiresAt,
+        result.data.remainingReads,
       );
     })();
   });
@@ -653,6 +673,7 @@ function renderContentView(
   destroyed: boolean,
   allowRaw: boolean,
   expiresAt: number,
+  remainingReads?: number,
 ): void {
   clear(container);
   const panel = el(
@@ -672,6 +693,11 @@ function renderContentView(
         role: "status",
         text: t("destroyed"),
       }),
+    );
+  } else if (remainingReads != null && remainingReads > 0) {
+    // N회용 burn: 아직 남은 횟수를 보여준다
+    panel.append(
+      el("span", { class: "chip reads-left", role: "status", text: tf("readsLeft", remainingReads) }),
     );
   }
   panel.append(codeBlock(payload, language));

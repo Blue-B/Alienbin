@@ -11,6 +11,8 @@ export interface PasteRow {
   language: string | null;
   created_at: number;
   expires_at: number;
+  max_reads: number | null;
+  read_count: number;
 }
 
 /**
@@ -28,6 +30,7 @@ export class PasteRepository {
     encryptionVersion: number | null;
     accessProof: string | null;
     burnAfterRead: boolean;
+    maxReads: number | null;
     language: string | null;
     createdAt: number;
     expiresAt: number;
@@ -35,8 +38,8 @@ export class PasteRepository {
     await this.db
       .prepare(
         `INSERT INTO pastes
-           (id, payload, encrypted, encryption_version, access_proof, burn_after_read, language, created_at, expires_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)`,
+           (id, payload, encrypted, encryption_version, access_proof, burn_after_read, max_reads, language, created_at, expires_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)`,
       )
       .bind(
         paste.id,
@@ -45,6 +48,7 @@ export class PasteRepository {
         paste.encryptionVersion,
         paste.accessProof,
         paste.burnAfterRead ? 1 : 0,
+        paste.maxReads,
         paste.language,
         paste.createdAt,
         paste.expiresAt,
@@ -57,17 +61,26 @@ export class PasteRepository {
     now: number,
   ): Promise<Pick<
     PasteRow,
-    "id" | "encrypted" | "burn_after_read" | "expires_at" | "language"
+    "id" | "encrypted" | "burn_after_read" | "expires_at" | "language" | "max_reads" | "read_count"
   > | null> {
     return (
       (await this.db
         .prepare(
-          `SELECT id, encrypted, burn_after_read, expires_at, language
+          `SELECT id, encrypted, burn_after_read, expires_at, language, max_reads, read_count
              FROM pastes WHERE id = ?1 AND expires_at > ?2`,
         )
         .bind(id, now)
         .first<
-          Pick<PasteRow, "id" | "encrypted" | "burn_after_read" | "expires_at" | "language">
+          Pick<
+            PasteRow,
+            | "id"
+            | "encrypted"
+            | "burn_after_read"
+            | "expires_at"
+            | "language"
+            | "max_reads"
+            | "read_count"
+          >
         >()) ?? null
     );
   }
@@ -106,26 +119,60 @@ export class PasteRepository {
    * DELETE ... RETURNING 한 방으로 동시성 race를 제거한다:
    * 동시에 N개 요청이 와도 정확히 1개만 row를 반환받고 나머지는 0행이다.
    */
+  /**
+   * burn 소비. 두 경로 모두 단일 문이라 원자적이다:
+   * - 1회용: DELETE ... RETURNING (내용이 DB에서 즉시 사라짐)
+   * - N회용: read_count < max_reads 조건의 UPDATE ... RETURNING (동시에 쳐도 정확히 남은 횟수만 성공)
+   */
   async consumeBurn(
     id: string,
     now: number,
     proof: string | null,
-  ): Promise<Pick<PasteRow, "id" | "payload" | "encrypted" | "language" | "expires_at"> | null> {
+  ): Promise<
+    | (Pick<PasteRow, "id" | "payload" | "encrypted" | "language" | "expires_at"> & {
+        read_count: number;
+        max_reads: number;
+      })
+    | null
+  > {
+    const deleted = await this.db
+      .prepare(
+        `DELETE FROM pastes
+         WHERE id = ?1 AND burn_after_read = 1 AND expires_at > ?2 AND access_proof IS ?3 AND max_reads <= 1
+         RETURNING id, payload, encrypted, language, expires_at, read_count, max_reads`,
+      )
+      .bind(id, now, proof)
+      .first<
+        Pick<PasteRow, "id" | "payload" | "encrypted" | "language" | "expires_at"> & {
+          read_count: number;
+          max_reads: number;
+        }
+      >();
+    if (deleted) return deleted;
+
+    const updated = await this.db
+      .prepare(
+        `UPDATE pastes SET read_count = read_count + 1
+         WHERE id = ?1 AND burn_after_read = 1 AND expires_at > ?2 AND access_proof IS ?3 AND read_count < max_reads
+         RETURNING id, payload, encrypted, language, expires_at, read_count, max_reads`,
+      )
+      .bind(id, now, proof)
+      .first<
+        Pick<PasteRow, "id" | "payload" | "encrypted" | "language" | "expires_at"> & {
+          read_count: number;
+          max_reads: number;
+        }
+      >();
+    return updated ?? null;
+  }
+
+  /** cron maintenance: 만료 row와 열람이 소진된 burn row를 회수한다. */
+  async deleteExpired(now: number): Promise<number> {
     const result = await this.db
       .prepare(
         `DELETE FROM pastes
-         WHERE id = ?1 AND burn_after_read = 1 AND expires_at > ?2 AND access_proof IS ?3
-         RETURNING id, payload, encrypted, language, expires_at`,
+         WHERE expires_at <= ?1 OR (burn_after_read = 1 AND read_count >= max_reads)`,
       )
-      .bind(id, now, proof)
-      .first<Pick<PasteRow, "id" | "payload" | "encrypted" | "language" | "expires_at">>();
-    return result ?? null;
-  }
-
-  /** cron maintenance. 유효한 row는 절대 건드리지 않는다. */
-  async deleteExpired(now: number): Promise<number> {
-    const result = await this.db
-      .prepare(`DELETE FROM pastes WHERE expires_at <= ?1`)
       .bind(now)
       .run();
     return result.meta.changes ?? 0;

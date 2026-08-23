@@ -30,17 +30,22 @@ const STRINGS = {
     copyFallback: "Automatic copy failed — select the URL and copy it manually.",
     open: "Open",
     keyWarning:
-      "This URL contains the decryption key (#k=…). If you lose this URL, the content cannot be recovered.",
+      "This link contains the key. Save it — if you lose it, the content can't be recovered.",
     oneTimeTitle: "One-time paste",
-    oneTimeDesc: "This paste can only be viewed once. Opening it will permanently delete it.",
-    reveal: "Reveal and destroy",
-    destroyed: "This content has now been destroyed.",
+    oneTimeDesc: "This link can be opened once. After that it's gone for good.",
+    multiDesc: (n: number) =>
+      `This link can be opened up to ${n} times. Each view uses one of them.`,
+    burnCountLabel: "Read limit",
+    reads: (n: number) => `${n} time${n > 1 ? "s" : ""}`,
+    readsLeft: (n: number) => `${n} read${n > 1 ? "s" : ""} left`,
+    reveal: "Open once",
+    destroyed: "That was the last view. This content is now gone.",
     decrypting: "Decrypting…",
-    missingKeyTitle: "Encryption key is missing.",
+    missingKeyTitle: "This link is missing its key.",
     missingKeyDesc:
-      "There is no decryption key in the URL fragment (#k=…). The key is never stored on the server, so the content cannot be recovered.",
+      "Encrypted content can only be opened with the key inside the link. Ask the sender for the original link.",
     wrongKeyTitle: "Unable to decrypt this paste.",
-    wrongKeyDesc: "The key is incorrect or the data is corrupted.",
+    wrongKeyDesc: "This link's key doesn't match. Double-check the original link.",
     notFoundTitle: "Paste not found",
     notFoundDesc: "This paste does not exist, has expired, or has already been consumed.",
     notFoundCreate: "Create a new paste",
@@ -63,7 +68,7 @@ const STRINGS = {
     contactTitle: "Questions or problems?",
     contactDesc: "Reach out on Telegram or open an issue on GitHub.",
     secretExplainer:
-      "Content is encrypted in your browser before upload. There is no separate password on purpose: the link itself is the key (#k=…), and the server only stores ciphertext. Lose the link and the content is gone for good.",
+      "Turn on to store the content encrypted. The key travels inside the link, so only people with the link can read it — not even the server. If you lose the link, the content can't be recovered.",
   },
   ko: {
     navNew: "새 paste",
@@ -91,18 +96,22 @@ const STRINGS = {
     copied: "복사 완료!",
     copyFallback: "자동 복사가 안 됐어요. URL을 직접 선택해서 복사해 주세요.",
     open: "열어보기",
-    keyWarning:
-      "이 링크 안에 복호화 키(#k=…)가 숨어 있어요. 링크를 잃어버리면 내용을 되살릴 방법이 없으니 꼭 보관하세요.",
+    keyWarning: "이 링크에 열쇠가 들어 있어요. 잃어버리면 내용을 복구할 수 없으니 꼭 보관하세요.",
     oneTimeTitle: "일회용 paste",
-    oneTimeDesc: "이 paste는 딱 한 번만 열 수 있어요. 열리는 순간 서버에서도 사라집니다.",
+    oneTimeDesc: "이 링크는 딱 한 번 열 수 있어요. 열고 나면 완전히 사라집니다.",
+    multiDesc: (n: number) =>
+      `이 링크는 최대 ${n}번까지 열 수 있어요. 열 때마다 횟수가 차감됩니다.`,
+    burnCountLabel: "열람 횟수",
+    reads: (n: number) => `${n}회`,
+    readsLeft: (n: number) => `남은 열람 ${n}회`,
     reveal: "한 번만 열기",
-    destroyed: "확인했으니 이제 사라졌어요. 새로고침해도 다시 볼 수 없습니다.",
+    destroyed: "마지막 열람이었어요. 이 내용은 이제 사라졌습니다.",
     decrypting: "풀어오는 중…",
-    missingKeyTitle: "열쇠(#k=)가 없는 링크예요.",
+    missingKeyTitle: "열쇠가 없는 링크예요.",
     missingKeyDesc:
-      "이 링크에는 암호화 키가 빠져 있어요. 키는 서버에 저장되지 않기 때문에, 원래 링크를 받아야만 내용을 볼 수 있습니다.",
+      "암호화된 내용은 링크 안의 열쇠가 있어야만 볼 수 있어요. 내용을 보내준 사람에게 원래 링크를 다시 받아 와 주세요.",
     wrongKeyTitle: "내용을 열 수 없어요.",
-    wrongKeyDesc: "링크의 키가 맞지 않거나 데이터가 손상된 것 같아요.",
+    wrongKeyDesc: "링크의 열쇠가 맞지 않아요. 원래 링크를 다시 확인해 주세요.",
     notFoundTitle: "없는(혹은 사라진) paste예요",
     notFoundDesc: "주소가 잘못됐거나, 만료됐거나, 누군가 이미 읽어서 사라진 paste입니다.",
     notFoundCreate: "새 paste 만들기",
@@ -124,7 +133,7 @@ const STRINGS = {
     contactTitle: "궁금한 점이나 문제가 있으면",
     contactDesc: "텔레그램으로 연락 주시거나 GitHub 이슈를 열어 주세요.",
     secretExplainer:
-      "올리기 전에 브라우저에서 내용을 잠가요. 패스워드 입력이 없는 건 의도예요. 링크 자체가 열쇠(#k=…)라서 서버에는 잠긴 암호문만 저장됩니다. 대신 링크를 잃어버리면 내용도 함께 끝이니 꼭 보관하세요.",
+      "켜면 내용이 암호화된 상태로 저장돼요. 열쇠는 링크에 붙어서 나가기 때문에 링크를 받은 사람만 볼 수 있고, 서버도 내용을 볼 수 없어요. 대신 링크를 잃어버리면 복구할 수 없으니 주의하세요.",
   },
 } as const;
 
@@ -145,7 +154,9 @@ export function t(key: StringKey): string {
 }
 
 /** 파라미터가 필요한 키용 */
-export function tf(key: "errTooLarge", n: number): string {
+export type FnKey = "errTooLarge" | "multiDesc" | "reads" | "readsLeft";
+
+export function tf(key: FnKey, n: number): string {
   return STRINGS[current][key](n);
 }
 
