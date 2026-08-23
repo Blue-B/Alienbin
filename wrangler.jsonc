@@ -15,8 +15,8 @@
     {
       "binding": "DB",
       "database_name": "alienbin",
-      // 실제 database_id는 배포 단계에서 `wrangler d1 create alienbin` 결과로 채움
-      "database_id": "PLACEHOLDER_RUN_D1_CREATE",
+      // `wrangler d1 create alienbin`으로 생성한 실제 ID (2026-08-23 대시보드 생성)
+      "database_id": "c01e7040-3828-4674-a1f6-70bbc2583b08",
       "migrations_dir": "migrations"
     }
   ],
@@ -30,7 +30,9 @@
       "simple": { "limit": 10, "period": 60 }
     }
   ],
-  "vars": {}
+  "vars": {
+    "TURNSTILE_SITE_KEY": "0x4AAAAAAEZJKEaraB-VOffl"
+  }
   // secrets (wrangler secret put):
   //   TURNSTILE_SECRET_KEY : Turnstile 서버 검증용 시크릿
   //   RATE_LIMIT_PEPPER    : IP 해시용 페퍼(옵션, rate limiter가 native binding이라 현재 미사용)
