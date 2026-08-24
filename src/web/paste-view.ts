@@ -211,30 +211,13 @@ async function loadTurnstile(container: HTMLElement): Promise<(() => string | un
 }
 
 // --- 홈 폼 ---
-/** 단순 스트로크 아이콘 (기하학적 마크만 허용 — taste-skill 아이콘 규칙) */
-function svgIcon(paths: string[]): SVGSVGElement {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("viewBox", "0 0 24 24");
-  svg.setAttribute("fill", "none");
-  svg.setAttribute("stroke", "currentColor");
-  svg.setAttribute("stroke-width", "1.75");
-  svg.setAttribute("stroke-linecap", "round");
-  svg.setAttribute("stroke-linejoin", "round");
-  svg.setAttribute("aria-hidden", "true");
-  for (const d of paths) {
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("d", d);
-    svg.append(path);
-  }
-  return svg;
-}
-
-function featureCard(iconPaths: string[], title: string, desc: string, tone: string): HTMLElement {
-  const card = el("div", { class: `feature-card tone-${tone}` });
-  const icon = el("span", { class: "feature-icon" });
-  icon.append(svgIcon(iconPaths));
-  card.append(icon, el("h3", { text: title }), el("p", { text: desc }));
-  return card;
+function dataPoint(index: string, title: string, desc: string): HTMLElement {
+  return el(
+    "article",
+    { class: "data-item" },
+    el("span", { class: "data-index", text: index }),
+    el("div", {}, el("h3", { text: title }), el("p", { text: desc })),
+  );
 }
 
 /** 상태 화면(소각 확인·404·복호화 실패)에 등장하는 작은 마스코트 */
@@ -268,21 +251,18 @@ export function renderHome(container: HTMLElement): void {
 
   const expiryFieldset = el("fieldset");
   expiryFieldset.append(el("legend", { text: t("expiration") }));
-  // 만료 pill: 4색 뮤트 팔레트 순환 (코랄·앰버·세이지·라벤더)
-  const TONES = ["coral", "amber", "sage", "lav"] as const;
-  const expKeys = Object.keys(EXPIRATIONS);
-  expKeys.forEach((key, i) => {
+  for (const key of Object.keys(EXPIRATIONS)) {
     const radio = el("input", { type: "radio", name: "expiry", value: key, id: `exp-${key}` });
     if (key === "1d") radio.checked = true;
     expiryFieldset.append(
       el(
         "span",
-        { class: `option exp-pill tone-${TONES[i % TONES.length]}` },
+        { class: "option exp-pill" },
         radio,
         el("label", { for: `exp-${key}`, text: key }),
       ),
     );
-  });
+  }
 
   const secretBox = el("input", { type: "checkbox", id: "secret" });
   // 열람 제한: 무제한(기본) 또는 N회. 1회 = 열면 즉시 삭제(기존의 소각)
@@ -331,7 +311,7 @@ export function renderHome(container: HTMLElement): void {
   const errorLine = el("p", { class: "form-error", role: "alert" });
   const submitBtn = el("button", { type: "submit", class: "primary", text: t("create") });
 
-  const form = el("form", { class: "paste-form" });
+  const form = el("form", { class: "paste-workbench" });
   const securityFieldset = el("fieldset", { class: "security" });
   securityFieldset.append(el("legend", { text: t("securityLegend") }));
   securityFieldset.append(
@@ -340,9 +320,28 @@ export function renderHome(container: HTMLElement): void {
     limitRow,
     limitHint,
   );
-  form.append(
-    payloadLabel,
-    payloadArea,
+
+  const editorHead = el(
+    "div",
+    { class: "editor-head" },
+    el(
+      "div",
+      { class: "editor-title" },
+      payloadLabel,
+      el("span", { class: "editor-format", text: "UTF-8 / TEXT" }),
+    ),
+    el("span", { class: "editor-status", text: "READY" }),
+  );
+  const editorPanel = el("section", { class: "editor-panel" }, editorHead, payloadArea);
+  const settingsRail = el(
+    "aside",
+    { class: "settings-rail" },
+    el(
+      "div",
+      { class: "rail-head" },
+      el("span", { text: "TRANSMISSION CONTROL" }),
+      el("span", { text: "01" }),
+    ),
     expiryFieldset,
     securityFieldset,
     el(
@@ -355,6 +354,7 @@ export function renderHome(container: HTMLElement): void {
     errorLine,
     submitBtn,
   );
+  form.append(editorPanel, settingsRail);
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -413,54 +413,50 @@ export function renderHome(container: HTMLElement): void {
     showCreateResult(container, result.data, fragment, encrypted);
   });
 
-  const intro = el("p", {
-    class: "intro",
-    text: t("tagline"),
-  });
-  // v1의 외계인 마스코트 정체성 복원 (PRD #29) — 비대칭 히어로: 카피 좌, 마스코트 우
-  // 새로 그린 귀여운 외계인 마스코트 (웜 브라운 배경이 카드 톤과 동일)
+  const intro = el("p", { class: "intro", text: t("tagline") });
   const mascot = el("img", {
     class: "hero-alien",
-    src: "/alien-hero.png",
-    alt: "클립보드를 안고 있는 Alienbin 외계인 마스코트",
-    width: "200",
-    height: "200",
+    src: "/alien-mascot-v2.png",
+    alt: "코드 조각을 들고 떠 있는 Alienbin 외계인 마스코트",
+    width: "320",
+    height: "480",
   });
-  const eyebrow = el("span", { class: "eyebrow", text: "Secure · Ephemeral · Encrypted" });
+  const signalLabel = el(
+    "span",
+    { class: "signal-label" },
+    el("span", { class: "signal-dot", "aria-hidden": "true" }),
+    "ALIENBIN // OPEN CHANNEL",
+  );
   const heroCopy = el(
     "div",
     { class: "hero-copy" },
-    eyebrow,
+    signalLabel,
     el("h1", { text: t("heroTitle") }),
     intro,
+    el(
+      "div",
+      { class: "hero-facts" },
+      el("span", { text: "NO ACCOUNT" }),
+      el("span", { text: "AES-GCM" }),
+      el("span", { text: "AUTO EXPIRE" }),
+    ),
   );
-  const mascotWrap = el("div", { class: "hero-mascot" }, mascot);
-  const hero = el("section", { class: "panel hero-card" }, mascotWrap, heroCopy);
-
-  // 벤토 피처 카드: 페이지 하단 밀도와 개성을 책임진다
-  const features = el(
+  const mascotWrap = el(
     "div",
-    { class: "features" },
-    featureCard(
-      ["M5 11h14v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-8Z", "M8 11V7a4 4 0 0 1 8 0v4"],
-      t("feat1Title"),
-      t("feat1Desc"),
-      "coral",
-    ),
-    featureCard(
-      ["M13 2 4.5 13.5H11L9.5 22 18 10.5H12L13 2Z"],
-      t("feat2Title"),
-      t("feat2Desc"),
-      "sage",
-    ),
-    featureCard(
-      ["M6 15c6 0 10-4 10-10-6 0-10 4-10 10Z", "M6 15c0-4 3-7 7-8"],
-      t("feat3Title"),
-      t("feat3Desc"),
-      "lav",
-    ),
+    { class: "hero-visual" },
+    mascot,
+    el("span", { class: "orbit-label", text: "TRANSMISSION READY" }),
   );
-  container.append(hero, form, features);
+  const hero = el("section", { class: "hero-shell" }, heroCopy, mascotWrap);
+
+  const dataStrip = el(
+    "section",
+    { class: "data-strip", "aria-label": "Alienbin features" },
+    dataPoint("01", t("feat1Title"), t("feat1Desc")),
+    dataPoint("02", t("feat2Title"), t("feat2Desc")),
+    dataPoint("03", t("feat3Title"), t("feat3Desc")),
+  );
+  container.append(hero, form, dataStrip);
 
   // Turnstile은 폼 렌더 직후 비동기 준비
   void loadTurnstile(turnstileBox).then((getToken) => {
