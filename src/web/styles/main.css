@@ -181,16 +181,18 @@ main#app {
   max-width: 42ch;
 }
 
-.hero-mascot img {
-  width: clamp(120px, 18vw, 180px);
+.hero-alien {
+  width: clamp(150px, 17vw, 205px);
   height: auto;
-  transform: rotate(-4deg);
-  filter: drop-shadow(0 10px 32px rgb(172 196 173 / 0.18));
-  transition: transform 500ms var(--ease);
+  border-radius: 24px;
+  border: 1px solid var(--hairline);
+  box-shadow: 0 18px 48px rgb(0 0 0 / 0.45);
+  transform: rotate(2deg);
+  transition: transform 400ms var(--ease);
 }
 
-.hero-mascot img:hover {
-  transform: rotate(-1deg) scale(1.03);
+.hero-alien:hover {
+  transform: rotate(0deg) scale(1.02);
 }
 
 /* ---------- 폼 · 패널 (더블베젤 글래스) ---------- */
@@ -816,11 +818,15 @@ button:not(:disabled):active,
   line-height: 1.6;
 }
 
-/* 피처 아이콘: 단일 액센트 */
+/* 피처 아이콘: 카드 톤별 뮤트 컬러 */
 .feature-icon {
   background: var(--accent-soft);
   color: var(--accent);
 }
+
+.tone-coral .feature-icon { background: rgb(232 146 124 / 0.14); color: #e8927c; }
+.tone-sage .feature-icon { background: var(--accent-soft); color: var(--accent); }
+.tone-lav .feature-icon { background: rgb(181 168 212 / 0.14); color: #b5a8d4; }
 
 /* 만료 옵션: 컬러 pill 태그 (레퍼런스의 컬러 태그 시스템) */
 .exp-pill label {
@@ -859,13 +865,24 @@ button:not(:disabled):active,
   border-color: var(--hairline-strong);
 }
 
-/* 체크 시 단일 액센트(세이지) 채움 — 색은 하나만 */
-.exp-pill input:checked + label {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #14110c;
+/* 4색 뮤트 팔레트: 선택 전 틴트, 선택 시 솔리드 (레퍼런스의 컬러 태그) */
+.tone-coral label { background: rgb(232 146 124 / 0.12); border-color: rgb(232 146 124 / 0.35); color: #eba895; }
+.tone-amber label { background: rgb(229 192 123 / 0.12); border-color: rgb(229 192 123 / 0.35); color: #e5c07b; }
+.tone-sage label { background: rgb(168 197 160 / 0.12); border-color: rgb(168 197 160 / 0.35); color: #a8c5a0; }
+.tone-lav label { background: rgb(181 168 212 / 0.12); border-color: rgb(181 168 212 / 0.35); color: #b5a8d4; }
+
+.tone-coral input:checked + label,
+.tone-amber input:checked + label,
+.tone-sage input:checked + label,
+.tone-lav input:checked + label {
+  color: #17130e;
   font-weight: 600;
 }
+
+.tone-coral input:checked + label { background: #e8927c; border-color: #e8927c; }
+.tone-amber input:checked + label { background: #e5c07b; border-color: #e5c07b; }
+.tone-sage input:checked + label { background: #a8c5a0; border-color: #a8c5a0; }
+.tone-lav input:checked + label { background: #b5a8d4; border-color: #b5a8d4; }
 
 @media (max-width: 768px) {
   .hero-card {

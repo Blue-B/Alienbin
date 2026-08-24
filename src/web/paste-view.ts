@@ -229,8 +229,8 @@ function svgIcon(paths: string[]): SVGSVGElement {
   return svg;
 }
 
-function featureCard(iconPaths: string[], title: string, desc: string): HTMLElement {
-  const card = el("div", { class: "feature-card" });
+function featureCard(iconPaths: string[], title: string, desc: string, tone: string): HTMLElement {
+  const card = el("div", { class: `feature-card tone-${tone}` });
   const icon = el("span", { class: "feature-icon" });
   icon.append(svgIcon(iconPaths));
   card.append(icon, el("h3", { text: title }), el("p", { text: desc }));
@@ -268,18 +268,21 @@ export function renderHome(container: HTMLElement): void {
 
   const expiryFieldset = el("fieldset");
   expiryFieldset.append(el("legend", { text: t("expiration") }));
-  for (const key of Object.keys(EXPIRATIONS)) {
+  // 만료 pill: 4색 뮤트 팔레트 순환 (코랄·앰버·세이지·라벤더)
+  const TONES = ["coral", "amber", "sage", "lav"] as const;
+  const expKeys = Object.keys(EXPIRATIONS);
+  expKeys.forEach((key, i) => {
     const radio = el("input", { type: "radio", name: "expiry", value: key, id: `exp-${key}` });
     if (key === "1d") radio.checked = true;
     expiryFieldset.append(
       el(
         "span",
-        { class: `option exp-pill exp-${key}` },
+        { class: `option exp-pill tone-${TONES[i % TONES.length]}` },
         radio,
         el("label", { for: `exp-${key}`, text: key }),
       ),
     );
-  }
+  });
 
   const secretBox = el("input", { type: "checkbox", id: "secret" });
   // 열람 제한: 무제한(기본) 또는 N회. 1회 = 열면 즉시 삭제(기존의 소각)
@@ -415,12 +418,13 @@ export function renderHome(container: HTMLElement): void {
     text: t("tagline"),
   });
   // v1의 외계인 마스코트 정체성 복원 (PRD #29) — 비대칭 히어로: 카피 좌, 마스코트 우
+  // 새로 그린 귀여운 외계인 마스코트 (웜 브라운 배경이 카드 톤과 동일)
   const mascot = el("img", {
-    class: "mascot",
-    src: "/logo.png",
-    alt: "클립보드를 든 Alienbin 외계인 마스코트",
-    width: "170",
-    height: "170",
+    class: "hero-alien",
+    src: "/alien-hero.png",
+    alt: "클립보드를 안고 있는 Alienbin 외계인 마스코트",
+    width: "200",
+    height: "200",
   });
   const eyebrow = el("span", { class: "eyebrow", text: "Secure · Ephemeral · Encrypted" });
   const heroCopy = el(
@@ -441,16 +445,19 @@ export function renderHome(container: HTMLElement): void {
       ["M5 11h14v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-8Z", "M8 11V7a4 4 0 0 1 8 0v4"],
       t("feat1Title"),
       t("feat1Desc"),
+      "coral",
     ),
     featureCard(
       ["M13 2 4.5 13.5H11L9.5 22 18 10.5H12L13 2Z"],
       t("feat2Title"),
       t("feat2Desc"),
+      "sage",
     ),
     featureCard(
       ["M6 15c6 0 10-4 10-10-6 0-10 4-10 10Z", "M6 15c0-4 3-7 7-8"],
       t("feat3Title"),
       t("feat3Desc"),
+      "lav",
     ),
   );
   container.append(hero, form, features);
