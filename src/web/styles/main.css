@@ -315,8 +315,8 @@ input[type="text"].result-url:focus {
 }
 
 .limit-hint {
-  border-left-color: var(--warn);
-  background: rgb(251 191 36 / 0.06);
+  border-left-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .limit-label {
@@ -816,20 +816,10 @@ button:not(:disabled):active,
   line-height: 1.6;
 }
 
-/* 피처 톤: 뮤트 멀티 컬러 */
-.f-coral .feature-icon {
-  background: rgb(232 146 124 / 0.14);
-  color: #e8927c;
-}
-
-.f-sage .feature-icon {
-  background: rgb(168 197 160 / 0.14);
+/* 피처 아이콘: 단일 액센트 */
+.feature-icon {
+  background: var(--accent-soft);
   color: var(--accent);
-}
-
-.f-lav .feature-icon {
-  background: rgb(181 168 212 / 0.14);
-  color: #b5a8d4;
 }
 
 /* 만료 옵션: 컬러 pill 태그 (레퍼런스의 컬러 태그 시스템) */
@@ -869,38 +859,12 @@ button:not(:disabled):active,
   border-color: var(--hairline-strong);
 }
 
-/* 옵션별 뮤트 컬러: 체크 시 해당 컬러 채움 */
-.exp-30s input:checked + label {
-  background: #e8927c;
-  border-color: #e8927c;
-}
-.exp-1m input:checked + label {
-  background: #e5c07b;
-  border-color: #e5c07b;
-}
-.exp-10m input:checked + label {
-  background: #a8c5a0;
-  border-color: #a8c5a0;
-}
-.exp-30m input:checked + label {
-  background: #7fb8b0;
-  border-color: #7fb8b0;
-}
-.exp-1h input:checked + label {
-  background: #b5a8d4;
-  border-color: #b5a8d4;
-}
-.exp-3h input:checked + label {
-  background: #d48fa6;
-  border-color: #d48fa6;
-}
-.exp-1d input:checked + label {
-  background: #8ab4d8;
-  border-color: #8ab4d8;
-}
-.exp-7d input:checked + label {
-  background: #a08fd0;
-  border-color: #a08fd0;
+/* 체크 시 단일 액센트(세이지) 채움 — 색은 하나만 */
+.exp-pill input:checked + label {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #14110c;
+  font-weight: 600;
 }
 
 @media (max-width: 768px) {

@@ -229,8 +229,8 @@ function svgIcon(paths: string[]): SVGSVGElement {
   return svg;
 }
 
-function featureCard(iconPaths: string[], title: string, desc: string, tone: string): HTMLElement {
-  const card = el("div", { class: `feature-card ${tone}` });
+function featureCard(iconPaths: string[], title: string, desc: string): HTMLElement {
+  const card = el("div", { class: "feature-card" });
   const icon = el("span", { class: "feature-icon" });
   icon.append(svgIcon(iconPaths));
   card.append(icon, el("h3", { text: title }), el("p", { text: desc }));
@@ -441,19 +441,16 @@ export function renderHome(container: HTMLElement): void {
       ["M5 11h14v8a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-8Z", "M8 11V7a4 4 0 0 1 8 0v4"],
       t("feat1Title"),
       t("feat1Desc"),
-      "f-coral",
     ),
     featureCard(
       ["M13 2 4.5 13.5H11L9.5 22 18 10.5H12L13 2Z"],
       t("feat2Title"),
       t("feat2Desc"),
-      "f-sage",
     ),
     featureCard(
       ["M6 15c6 0 10-4 10-10-6 0-10 4-10 10Z", "M6 15c0-4 3-7 7-8"],
       t("feat3Title"),
       t("feat3Desc"),
-      "f-lav",
     ),
   );
   container.append(hero, form, features);
