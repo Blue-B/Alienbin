@@ -211,12 +211,13 @@ async function loadTurnstile(container: HTMLElement): Promise<(() => string | un
 }
 
 // --- 홈 폼 ---
-function dataPoint(index: string, title: string, desc: string): HTMLElement {
+function infoCard(index: string, title: string, desc: string, className = ""): HTMLElement {
   return el(
     "article",
-    { class: "data-item" },
-    el("span", { class: "data-index", text: index }),
-    el("div", {}, el("h3", { text: title }), el("p", { text: desc })),
+    { class: `info-card ${className}`.trim() },
+    el("span", { class: "info-index", text: index }),
+    el("h2", { text: title }),
+    el("p", { text: desc }),
   );
 }
 
@@ -224,7 +225,7 @@ function dataPoint(index: string, title: string, desc: string): HTMLElement {
 function stateMascot(dim = false): HTMLImageElement {
   return el("img", {
     class: dim ? "mascot mascot-dim" : "mascot",
-    src: "/logo.png",
+    src: "/alien-mark.png",
     alt: "",
     width: "84",
     height: "84",
@@ -241,6 +242,11 @@ export function renderHome(container: HTMLElement): void {
     spellcheck: "false",
   });
   const payloadLabel = el("label", { for: "payload", text: t("content") });
+  const editorCount = el("span", { class: "editor-count", text: "0 B" });
+  payloadArea.addEventListener("input", () => {
+    const bytes = byteLength(payloadArea.value);
+    editorCount.textContent = bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} KiB`;
+  });
 
   // v1의 TAB 들여쓰기 복원
   payloadArea.addEventListener("keydown", (event) => {
@@ -330,18 +336,25 @@ export function renderHome(container: HTMLElement): void {
       payloadLabel,
       el("span", { class: "editor-format", text: "UTF-8 / TEXT" }),
     ),
-    el("span", { class: "editor-status", text: "READY" }),
+    editorCount,
   );
   const editorPanel = el("section", { class: "editor-panel" }, editorHead, payloadArea);
+  const settingsIntro = el(
+    "div",
+    { class: "settings-intro" },
+    el("img", {
+      class: "settings-mascot",
+      src: "/alien-mascot-cute.png",
+      alt: "",
+      width: "55",
+      height: "105",
+    }),
+    el("div", {}, el("h1", { text: t("settingsTitle") }), el("p", { text: t("settingsDesc") })),
+  );
   const settingsRail = el(
     "aside",
     { class: "settings-rail" },
-    el(
-      "div",
-      { class: "rail-head" },
-      el("span", { text: "TRANSMISSION CONTROL" }),
-      el("span", { text: "01" }),
-    ),
+    settingsIntro,
     expiryFieldset,
     securityFieldset,
     el(
@@ -413,35 +426,23 @@ export function renderHome(container: HTMLElement): void {
     showCreateResult(container, result.data, fragment, encrypted);
   });
 
-  const mascot = el("img", {
-    class: "signal-mascot",
-    src: "/alien-mascot-cute.png",
-    alt: "손을 흔드는 Alienbin 외계인 마스코트",
-    width: "63",
-    height: "120",
-  });
-  const signalStrip = el(
-    "section",
-    { class: "signal-strip", "aria-label": "Alienbin signal ready" },
-    el("div", { class: "signal-character" }, mascot),
-    el("span", { class: "signal-brand", text: "ALIENBIN" }),
-    el("span", { class: "signal-track", "aria-hidden": "true" }),
+  const privacyCard = infoCard("01", t("feat1Title"), t("feat1Desc"), "info-primary");
+  privacyCard.append(
     el(
-      "span",
-      { class: "signal-ready" },
-      el("span", { class: "signal-dot", "aria-hidden": "true" }),
-      "SIGNAL READY",
+      "dl",
+      { class: "privacy-facts" },
+      el("div", {}, el("dt", { text: "KEY" }), el("dd", { text: "URL fragment" })),
+      el("div", {}, el("dt", { text: "SERVER" }), el("dd", { text: "ciphertext only" })),
     ),
   );
-
-  const dataStrip = el(
+  const infoGrid = el(
     "section",
-    { class: "data-strip", "aria-label": "Alienbin features" },
-    dataPoint("01", t("feat1Title"), t("feat1Desc")),
-    dataPoint("02", t("feat2Title"), t("feat2Desc")),
-    dataPoint("03", t("feat3Title"), t("feat3Desc")),
+    { class: "info-grid", "aria-label": "Alienbin features" },
+    privacyCard,
+    infoCard("02", t("feat2Title"), t("feat2Desc")),
+    infoCard("03", t("feat3Title"), t("feat3Desc")),
   );
-  container.append(signalStrip, form, dataStrip);
+  container.append(form, infoGrid);
 
   // Turnstile은 폼 렌더 직후 비동기 준비
   void loadTurnstile(turnstileBox).then((getToken) => {
