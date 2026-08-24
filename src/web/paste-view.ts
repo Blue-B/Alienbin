@@ -413,41 +413,26 @@ export function renderHome(container: HTMLElement): void {
     showCreateResult(container, result.data, fragment, encrypted);
   });
 
-  const intro = el("p", { class: "intro", text: t("tagline") });
   const mascot = el("img", {
-    class: "hero-alien",
-    src: "/alien-mascot-v2.png",
-    alt: "코드 조각을 들고 떠 있는 Alienbin 외계인 마스코트",
-    width: "320",
-    height: "480",
+    class: "signal-mascot",
+    src: "/alien-mascot-cute.png",
+    alt: "손을 흔드는 Alienbin 외계인 마스코트",
+    width: "63",
+    height: "120",
   });
-  const signalLabel = el(
-    "span",
-    { class: "signal-label" },
-    el("span", { class: "signal-dot", "aria-hidden": "true" }),
-    "ALIENBIN // OPEN CHANNEL",
-  );
-  const heroCopy = el(
-    "div",
-    { class: "hero-copy" },
-    signalLabel,
-    el("h1", { text: t("heroTitle") }),
-    intro,
+  const signalStrip = el(
+    "section",
+    { class: "signal-strip", "aria-label": "Alienbin signal ready" },
+    el("div", { class: "signal-character" }, mascot),
+    el("span", { class: "signal-brand", text: "ALIENBIN" }),
+    el("span", { class: "signal-track", "aria-hidden": "true" }),
     el(
-      "div",
-      { class: "hero-facts" },
-      el("span", { text: "NO ACCOUNT" }),
-      el("span", { text: "AES-GCM" }),
-      el("span", { text: "AUTO EXPIRE" }),
+      "span",
+      { class: "signal-ready" },
+      el("span", { class: "signal-dot", "aria-hidden": "true" }),
+      "SIGNAL READY",
     ),
   );
-  const mascotWrap = el(
-    "div",
-    { class: "hero-visual" },
-    mascot,
-    el("span", { class: "orbit-label", text: "TRANSMISSION READY" }),
-  );
-  const hero = el("section", { class: "hero-shell" }, heroCopy, mascotWrap);
 
   const dataStrip = el(
     "section",
@@ -456,7 +441,7 @@ export function renderHome(container: HTMLElement): void {
     dataPoint("02", t("feat2Title"), t("feat2Desc")),
     dataPoint("03", t("feat3Title"), t("feat3Desc")),
   );
-  container.append(hero, form, dataStrip);
+  container.append(signalStrip, form, dataStrip);
 
   // Turnstile은 폼 렌더 직후 비동기 준비
   void loadTurnstile(turnstileBox).then((getToken) => {
