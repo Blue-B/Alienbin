@@ -1,46 +1,61 @@
-# ADR-004: Burn-after-read as an explicit atomic consume operation
+# ADR-004: Read limits as explicit atomic consume operations
 
 ## Context
 
-"One-time read" is only honest if the system can guarantee it. Two hazards make naive
-implementations lie:
+A read limit is only honest if concurrent requests cannot exceed it. Two hazards make a
+naive implementation unreliable:
 
-1. **GET-based destruction**: a link previewer or browser prefetch fires a GET and silently
-   consumes the paste before the human sees it.
-2. **SELECT-then-DELETE race**: two concurrent consumers both pass the SELECT, both receive
-   the payload, then both attempt the delete — the "once" guarantee is broken.
+1. A link previewer or browser prefetch can issue a GET before the intended reader arrives.
+2. Two consumers can both read the same counter before either one updates or deletes it.
+
+Alienbin supports unlimited access or limits of 1, 3, 5, and 10 successful reads.
 
 ## Decision
 
-- GET endpoints are side-effect-free. `GET /api/pastes/:id/content` refuses burn pastes
-  outright; consumption happens only via an explicit user action (Reveal button) that calls
-  `POST /api/pastes/:id/consume`.
-- The consume endpoint performs one atomic statement:
+GET endpoints are side-effect-free. `GET /api/pastes/:id/content` refuses every
+read-limited paste. Consumption requires an explicit user action that calls
+`POST /api/pastes/:id/consume`.
+
+One-time pastes execute one atomic statement:
 
 ```sql
 DELETE FROM pastes
 WHERE id = ?1 AND burn_after_read = 1
-  AND expires_at > ?2 AND access_proof IS ?3
-RETURNING id, payload, encrypted, language, expires_at;
+  AND expires_at > ?2 AND access_proof IS ?3 AND max_reads <= 1
+RETURNING id, payload, encrypted, language, expires_at, read_count, max_reads;
 ```
 
-Exactly zero or one row comes back: whoever wins the DELETE gets the payload; every loser
-gets a uniform 404.
+Higher limits execute one conditional update:
+
+```sql
+UPDATE pastes SET read_count = read_count + 1
+WHERE id = ?1 AND burn_after_read = 1
+  AND expires_at > ?2 AND access_proof IS ?3 AND read_count < max_reads
+RETURNING id, payload, encrypted, language, expires_at, read_count, max_reads;
+```
+
+The SQL condition is the concurrency boundary. A request succeeds only while a row can be
+deleted or its counter can still be incremented.
 
 ## Alternatives
 
-- **Soft-delete flag (`consumed_at` set via UPDATE ... WHERE consumed=0)**: also atomic in
-  SQL, but leaves content in the table — worse for the threat model (DB compromise) and
-  requires cron cleanup anyway.
-- **D1 batch/transaction wrapping SELECT+DELETE**: two round trips inside a transaction;
-  strictly more moving parts than a single RETURNING statement with identical guarantees.
-- **Application-level lock**: meaningless across isolates; D1 serializes statements per
-  database already.
+- A SELECT followed by DELETE or UPDATE was rejected because concurrent requests can pass
+  the first query together.
+- An application lock was rejected because Workers isolates do not share process memory.
+- A consumed flag was rejected for one-time pastes because it leaves payload bytes in the
+  active table until cleanup.
+- GET-based consumption was rejected because previews and prefetchers can spend a read.
 
 ## Consequences
 
-- Positive: the invariant "N concurrent consumes → exactly 1 success" holds by SQL
-  semantics; crawlers cannot trigger it; regression test asserts exactly-one-success.
-- Negative: accidental tab refresh after reveal shows permanent destruction (intended UX,
-  explicitly messaged); `RETURNING` support had to be verified on D1 (it is supported,
-  SQLite semantics).
+- One-time content is removed from the active database during the successful consume.
+- Higher limits allow exactly the configured number of successful consumes under
+  concurrency. Exhausted rows become inaccessible immediately and are removed by hourly
+  cleanup.
+- Refreshing after a successful consume spends another read. The confirmation screen makes
+  this behavior explicit.
+- D1 Time Travel can retain recoverable database history for up to 7 days on the Free plan,
+  including rows deleted from the active database.
+
+Integration and security tests cover one-time races, three-read exhaustion, wrong access
+proofs, crawler-safe GET behavior, and uniform 404 responses after exhaustion.

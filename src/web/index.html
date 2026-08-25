@@ -3,11 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Alienbin — secure ephemeral text sharing</title>
+    <title>Alienbin | Expiring text sharing</title>
+    <meta
+      name="description"
+      content="Share code, logs, and notes with optional browser encryption, expiration, and read limits."
+    />
     <link rel="icon" href="/alien-mark.png" type="image/png" />
     <link rel="stylesheet" href="./styles/main.css" />
   </head>
   <body>
+    <a class="skip-link" id="skip-content" href="#app">Skip to content</a>
     <header class="topbar">
       <a class="brand" href="/">
         <img
@@ -21,6 +26,7 @@
       <nav>
         <a href="/" id="nav-new">New paste</a>
         <a href="/about" id="nav-about">About</a>
+        <a href="/privacy" id="nav-privacy">Privacy</a>
         <span class="lang-group" id="lang-toggle"></span>
       </nav>
     </header>
@@ -29,7 +35,6 @@
       <!-- main.ts가 경로(/ 또는 /p/:id)에 따라 이 안을 렌더링한다 -->
       <noscript>Alienbin v2 requires JavaScript.</noscript>
     </main>
-
 
     <div id="toast-region" aria-live="polite"></div>
     <script type="module" src="./main.ts"></script>

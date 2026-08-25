@@ -1,8 +1,8 @@
 # Security Design
 
 This document covers each threat the v2 design considers, in
-**Threat / Impact / Mitigation / Remaining risk** form. Everything here maps to real code —
-file references point into `src/worker/` unless noted.
+**Threat / Impact / Mitigation / Remaining risk** form. Everything here maps to real code.
+File references point into `src/worker/` unless noted.
 
 ## 1. TTL policy interference
 
@@ -33,8 +33,8 @@ file references point into `src/worker/` unless noted.
 
 - **Threat**: User-controlled strings altering query structure.
 - **Impact**: Data exfiltration or destruction beyond one paste.
-- **Mitigation**: Every D1 statement uses prepared statements with positional binding —
-  no string interpolation anywhere (`repositories/paste-repository.ts`). IDs must match
+- **Mitigation**: Every D1 statement uses prepared statements with positional binding.
+  There is no string interpolation anywhere (`repositories/paste-repository.ts`). IDs must match
   `^[A-Za-z0-9_-]{22}$` before reaching a query (`validation/paste.ts`). SQLi regression
   tests included.
 - **Remaining risk**: None identified.
@@ -65,31 +65,31 @@ file references point into `src/worker/` unless noted.
 - **Impact**: Workers request quota and D1 write quota exhaustion.
 - **Mitigation**: Native Cloudflare rate limiting binding: 10 requests/60 s per client key,
   `429` + `Retry-After` on excess (`middleware/rate-limit.ts`, wrangler.jsonc `ratelimits`).
-  Raw IPs are used only as transient limiter keys — they are never stored in D1 or logs.
-  Turnstile adds a browser-only friction layer but is deliberately not the primary defense
-  because the API is public (CLI exists).
+  Raw IPs are used as transient limiter keys and are sent to Turnstile verification. The
+  application does not write them to D1 or application logs. Cloudflare can process network
+  signals under its own service and privacy policies. Turnstile is not the primary defense
+  because the API is public and the CLI cannot solve browser challenges.
 - **Remaining risk**: The dev fallback limiter is per-isolate in-memory and unsuitable as
   production defense (it is not used in production; binding always present there).
 
-## 7. Burn-after-read race
+## 7. Read-limit race
 
-- **Threat**: Two clients consuming a one-time paste simultaneously.
-- **Impact**: Both receive "self-destructing" content; the guarantee is broken.
-- **Mitigation**: Single atomic statement `DELETE ... RETURNING ...` guarded by
-  `burn_after_read = 1 AND expires_at > now AND access_proof IS ?` — concurrent consumers
-  race on one DELETE; exactly one gets the row, others get 404
-  (`repositories/paste-repository.ts consumeBurn`). Concurrency regression test asserts
-  exactly-one-success over N parallel consumes. Plain GET can never consume burn pastes:
-  the content endpoint refuses them, so crawlers/preloaders cannot destroy data.
-- **Remaining risk**: D1 executes statements serially per database; the invariant holds by
-  SQL semantics rather than distributed locking.
+- **Threat**: Concurrent clients exceed a configured limit of 1, 3, 5, or 10 reads.
+- **Impact**: More readers receive content than the sender allowed.
+- **Mitigation**: One-time content uses `DELETE ... RETURNING`. Higher limits use
+  `UPDATE ... SET read_count = read_count + 1 WHERE read_count < max_reads RETURNING ...`.
+  Each consume is one D1 statement guarded by expiration and access proof. Concurrency tests
+  assert exactly one winner for a one-time paste and exact exhaustion for a three-read paste.
+  Plain GET cannot consume limited pastes, so crawlers and preloaders do not spend a read.
+- **Remaining risk**: Refreshing after a successful consume uses another read. The UI shows a
+  confirmation step and the remaining count.
 
 ## 8. Secret link leak
 
 - **Threat**: The `/p/:id#k=...` URL being shared, logged, or sniffed, exposing the key.
 - **Impact**: Encrypted paste readable by whoever holds the full fragment URL.
 - **Mitigation**: Key lives in the URL **fragment**, which is never transmitted to the
-  server. Server stores only ciphertext plus an access proof (SHA-256 of the key) — raw keys
+  server. Server stores only ciphertext plus an access proof (SHA-256 of the key). Raw keys
   are never persisted or returned by the API. `Referrer-Policy: no-referrer` prevents
   fragment leakage through Referer headers. Knowing the path alone is insufficient: reads
   and consumption require the proof in SQL (`access_proof IS ?`), so a path-holder cannot
@@ -115,20 +115,32 @@ file references point into `src/worker/` unless noted.
 - **Mitigation**: Structured logging limited to request id/route/status/duration/generic
   error code (`worker/index.ts onError`). No middleware serializes request bodies; the
   error handler logs the path only. Access proofs are bound in SQL, not printed.
-- **Remaining risk**: Cloudflare-side platform telemetry (e.g., siteverify analytics) is
-  outside our control.
+- **Remaining risk**: Cloudflare platform telemetry and D1 Time Travel history follow
+  Cloudflare's retention and privacy policies rather than application code.
 
 ## 11. Crawler accidental consumption
 
 - **Threat**: Link previews, prefetchers, or crawlers triggering GETs that destroy burn
   pastes or fetch sensitive content.
 - **Impact**: One-time content silently consumed before the intended reader opens it.
-- **Mitigation**: GET is side-effect-free by design — burn content requires an explicit
+- **Mitigation**: GET is side-effect-free by design. Limited content requires an explicit
   `POST /consume` behind a confirmation button. Dynamic responses carry
   `X-Robots-Tag: noindex, nofollow, noarchive`, and `robots.txt` disallows `/p/`, `/raw/`,
   and `/api/`.
 - **Remaining risk**: A crawler that ignores robots.txt and performs POSTs is outside
   realistic threat modeling.
+
+## 12. Retention and recovery history
+
+- **Threat**: Public copy promises physical erasure earlier than the infrastructure can
+  guarantee.
+- **Impact**: Users rely on an inaccurate deletion claim.
+- **Mitigation**: Every read rejects expired content immediately. Hourly cleanup deletes
+  expired and exhausted rows from the active D1 database. The public privacy notice states
+  that D1 Time Travel can retain restorable history for up to 7 days on the Free plan.
+- **Remaining risk**: Cloudflare controls backup and platform telemetry retention. Alienbin
+  cannot provide cryptographic erasure for Plain mode. Secret mode reduces this risk because
+  backup history contains ciphertext without the fragment key.
 
 ## Header inventory
 

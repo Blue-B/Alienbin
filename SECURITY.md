@@ -5,7 +5,7 @@
 | Version | Supported |
 |---|---|
 | 2.x | yes |
-| 1.x (legacy) | no — end of life, do not deploy |
+| 1.x (legacy) | no, end of life, do not deploy |
 
 v1 contains known defects documented in
 [GHSA-hqvr-6v89-gwff](https://github.com/Blue-B/Alienbin/security/advisories/GHSA-hqvr-6v89-gwff).

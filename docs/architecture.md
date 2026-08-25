@@ -1,8 +1,9 @@
 # Architecture
 
-Alienbin v2 runs entirely on Cloudflare's free tier: one Worker serving both the static
-frontend (Static Assets) and the JSON API, backed by D1 (SQLite). There is no VM, no
-container, no external database service.
+Alienbin v2 runs within Cloudflare's free tier: one Worker serves the static frontend and
+JSON API, backed by D1. There is no VM, container, or external database service. Public
+information pages at `/about`, `/privacy`, `/terms`, and `/security` ship in the same static
+frontend.
 
 ## System overview
 
@@ -13,7 +14,7 @@ flowchart TD
 
     subgraph Worker internals
         SA["Static Assets binding<br/>(index.html + JS/CSS bundles,<br/>free & unmetered)"]
-        API["API routes<br/>/api/pastes · /raw/:id"]
+        API["API routes<br/>/api/pastes, /raw/:id"]
         RL["Rate limiting<br/>(native RATE_LIMITER binding,<br/>in-memory fallback in dev)"]
         TS["Turnstile verification<br/>(siteverify, web UI only)"]
     end
@@ -79,20 +80,23 @@ sequenceDiagram
 
 Each paste owns its `expires_at` (Unix seconds). Every read path filters on
 `expires_at > now`, so expiry is enforced by query semantics, not by background jobs.
-The hourly Cron Trigger only reclaims storage (`DELETE ... WHERE expires_at <= now`) and is
-never part of the security boundary.
+The hourly Cron Trigger only reclaims active storage (`DELETE ... WHERE expires_at <= now`)
+and is never part of the access-control boundary. Cloudflare D1 Time Travel retains
+restorable history for up to 7 days on the Free plan, so active-row deletion and backup
+history retention are documented separately.
 
-## Burn-after-read flow
+## Read-limited flow
 
-Consumption is a single atomic statement — see ADR-004:
+Consumption uses one atomic statement per request. One-time pastes use `DELETE ... RETURNING`.
+Limits of 3, 5, or 10 use a guarded counter update:
 
 ```sql
-DELETE FROM pastes
+UPDATE pastes SET read_count = read_count + 1
 WHERE id = ?1 AND burn_after_read = 1
-  AND expires_at > ?2 AND access_proof IS ?3
-RETURNING id, payload, encrypted, language, expires_at;
+  AND expires_at > ?2 AND access_proof IS ?3 AND read_count < max_reads
+RETURNING id, payload, encrypted, language, expires_at, read_count, max_reads;
 ```
 
-Concurrent consumers race on one DELETE; exactly one receives the payload, all others get
-404. Plain GET requests can never consume a burn paste because the content endpoint refuses
-`burnAfterRead` rows.
+Concurrent consumers race on the SQL condition, so only the configured number receives the
+payload. Plain GET requests cannot consume a limited paste because the content endpoint
+refuses `burnAfterRead` rows. See ADR-004 for the one-time DELETE and counter rationale.

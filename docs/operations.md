@@ -10,7 +10,7 @@ including what "free" actually covers.
 |---|---|---|
 | Compute | External Node host (always-on process) | Cloudflare Workers (scale-to-zero, free tier) |
 | Database | MongoDB Atlas (storage-constrained cluster) | Cloudflare D1 (free tier) |
-| Frontend hosting | Same Node process via Express static + EJS | Workers Static Assets — **free and unmetered** |
+| Frontend hosting | Same Node process via Express static + EJS | Workers Static Assets, **free and unmetered** |
 | Domain | `alienbin.com` custom domain | `*.workers.dev` by default; custom domain optional |
 | Bot defense | none | Cloudflare Turnstile (free) |
 | Fixed monthly cost | host + Atlas tier | $0 |
@@ -31,8 +31,8 @@ platform. The renewal directive describes it as Cloudtype.
 | Cron Triggers | available on free plan (5 per account) |
 | Turnstile | unlimited verification requests |
 
-Sources: developers.cloudflare.com — Workers pricing/limits, D1 pricing, Static Assets
-billing notes, Turnstile plans. Re-check these numbers against current docs before quoting
+Sources: developers.cloudflare.com documentation for Workers limits, D1 pricing, Static
+Assets billing, and Turnstile plans. Re-check these numbers against current docs before quoting
 them anywhere new; they change over time.
 
 ## How v2 fits inside those limits
@@ -43,16 +43,28 @@ them anywhere new; they change over time.
   that don't consume D1 quota.
 - 100k dynamic requests/day ≈ roughly 50k full paste reads/day. Expected traffic for this
   service is orders of magnitude below that.
-- The hourly cron consumes negligible quota (a handful of runs/day).
+- The hourly cron schedules 24 cleanup runs per day and consumes negligible quota.
+
+## Storage scope
+
+Alienbin v2 stores bounded text in D1. Plain payloads are limited to 256 KiB and encrypted
+payloads to 320 KiB. File uploads are intentionally excluded; see
+[ADR-005](adr/adr-005-defer-file-uploads.md).
+
+Cloudflare R2 is the preferred candidate if attachments are added later, but its Free tier
+is not treated as unlimited public storage. Any file design must include an account-wide
+cost ceiling, separate upload quotas, abandoned-object cleanup, encrypted metadata, and
+Worker-controlled expiry. Telegram is not an accepted storage backend because Alienbin
+cannot control or verify its retention and deletion behavior.
 
 ## Honest framing
 
-This is **not** "free forever" — Cloudflare can change limits, and viral traffic could hit
+This is **not** "free forever". Cloudflare can change limits, and viral traffic could hit
 daily quotas. The accurate claim is:
 
-> At currently expected traffic, Alienbin v2 operates entirely within the free tier with no
-> fixed server cost. If quotas ever bind, the upgrade path is usage-based billing rather
-> than an always-on server.
+> At currently expected traffic, Alienbin v2 operates within the free tier with no fixed
+> server cost. If quotas ever bind, the upgrade path is usage-based billing rather than an
+> always-on server.
 
 ## Operational runbook
 

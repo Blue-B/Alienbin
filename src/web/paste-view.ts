@@ -480,43 +480,6 @@ function showCreateResult(
   container.append(panel);
 }
 
-// --- 소개 (v1 /about 복원) ---
-export function renderAbout(container: HTMLElement): void {
-  clear(container);
-  const panel = el("div", { class: "panel about" });
-  panel.append(
-    stateMascot(),
-    el("h1", { text: t("aboutTitle") }),
-    el("p", { text: t("aboutIntro") }),
-    el("h2", { text: t("aboutFeaturesTitle") }),
-    el(
-      "ul",
-      { class: "about-list" },
-      el("li", { text: t("featAnon") }),
-      el("li", { text: t("featCode") }),
-      el("li", { text: t("featPrivate") }),
-    ),
-    el("h2", { text: t("freeTitle") }),
-    el("p", { text: t("freeDesc") }),
-    el("h2", { text: t("privacyTitle") }),
-    el("p", { text: t("privacyDesc") }),
-    el("h2", { text: t("contactTitle") }),
-    el("p", { text: t("contactDesc") }),
-    el(
-      "div",
-      { class: "btn-row" },
-      el("a", {
-        href: "https://github.com/Blue-B/Alienbin",
-        target: "_blank",
-        rel: "noreferrer",
-        class: "button-link",
-        text: "GitHub",
-      }),
-    ),
-  );
-  container.append(panel);
-}
-
 // --- 뷰어 ---
 export function renderViewer(container: HTMLElement, id: string): void {
   if (!ID_PATTERN.test(id)) {
