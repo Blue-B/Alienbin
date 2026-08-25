@@ -112,7 +112,10 @@ function normalizeLanguage(lang: string | null | undefined): string | null {
 }
 
 interface TurnstileApi {
-  render(el: HTMLElement, opts: { sitekey: string }): string;
+  render(
+    el: HTMLElement,
+    opts: { sitekey: string; appearance: "interaction-only"; size: "flexible" },
+  ): string;
 }
 declare global {
   interface Window {
@@ -202,7 +205,11 @@ async function loadTurnstile(container: HTMLElement): Promise<(() => string | un
   });
   if (!window.turnstile) return null;
 
-  const widgetId = window.turnstile.render(container, { sitekey: siteKey });
+  const widgetId = window.turnstile.render(container, {
+    sitekey: siteKey,
+    appearance: "interaction-only",
+    size: "flexible",
+  });
   container.dataset.widget = widgetId;
   return () => {
     const input = container.querySelector<HTMLInputElement>("input[name]");
@@ -211,16 +218,6 @@ async function loadTurnstile(container: HTMLElement): Promise<(() => string | un
 }
 
 // --- 홈 폼 ---
-function infoCard(index: string, title: string, desc: string, className = ""): HTMLElement {
-  return el(
-    "article",
-    { class: `info-card ${className}`.trim() },
-    el("span", { class: "info-index", text: index }),
-    el("h2", { text: title }),
-    el("p", { text: desc }),
-  );
-}
-
 /** 상태 화면(소각 확인·404·복호화 실패)에 등장하는 작은 마스코트 */
 function stateMascot(dim = false): HTMLImageElement {
   return el("img", {
@@ -255,20 +252,11 @@ export function renderHome(container: HTMLElement): void {
     payloadArea.setRangeText("  ", payloadArea.selectionStart, payloadArea.selectionEnd, "end");
   });
 
-  const expiryFieldset = el("fieldset");
-  expiryFieldset.append(el("legend", { text: t("expiration") }));
+  const expirySelect = el("select", { id: "expiration", "aria-label": t("expiration") });
   for (const key of Object.keys(EXPIRATIONS)) {
-    const radio = el("input", { type: "radio", name: "expiry", value: key, id: `exp-${key}` });
-    if (key === "1d") radio.checked = true;
-    expiryFieldset.append(
-      el(
-        "span",
-        { class: "option exp-pill" },
-        radio,
-        el("label", { for: `exp-${key}`, text: key }),
-      ),
-    );
+    expirySelect.append(el("option", { value: key, text: key }));
   }
+  expirySelect.value = "1d";
 
   const secretBox = el("input", { type: "checkbox", id: "secret" });
   // 열람 제한: 무제한(기본) 또는 N회. 1회 = 열면 즉시 삭제(기존의 소각)
@@ -318,56 +306,39 @@ export function renderHome(container: HTMLElement): void {
   const submitBtn = el("button", { type: "submit", class: "primary", text: t("create") });
 
   const form = el("form", { class: "paste-workbench" });
-  const securityFieldset = el("fieldset", { class: "security" });
-  securityFieldset.append(el("legend", { text: t("securityLegend") }));
-  securityFieldset.append(
-    el("span", { class: "option" }, secretBox, el("label", { for: "secret", text: t("secret") })),
-    secretHint,
-    limitRow,
-    limitHint,
-  );
-
   const editorHead = el(
     "div",
     { class: "editor-head" },
+    el("div", { class: "editor-title" }, payloadLabel),
     el(
       "div",
-      { class: "editor-title" },
-      payloadLabel,
-      el("span", { class: "editor-format", text: "UTF-8 / TEXT" }),
+      { class: "editor-meta" },
+      el("label", { for: "language", class: "sr-only", text: t("language") }),
+      langSelect,
+      editorCount,
     ),
-    editorCount,
   );
   const editorPanel = el("section", { class: "editor-panel" }, editorHead, payloadArea);
-  const settingsIntro = el(
+  const toolbar = el(
     "div",
-    { class: "settings-intro" },
-    el("img", {
-      class: "settings-mascot",
-      src: "/alien-mascot-cute.png",
-      alt: "",
-      width: "55",
-      height: "105",
-    }),
-    el("div", {}, el("h1", { text: t("settingsTitle") }), el("p", { text: t("settingsDesc") })),
-  );
-  const settingsRail = el(
-    "aside",
-    { class: "settings-rail" },
-    settingsIntro,
-    expiryFieldset,
-    securityFieldset,
+    { class: "paste-toolbar" },
     el(
-      "div",
-      { class: "lang-row" },
-      el("label", { for: "language", text: t("language") }),
-      langSelect,
+      "label",
+      { class: "toolbar-field expiry-control", for: "expiration" },
+      el("span", { text: t("expiration") }),
+      expirySelect,
     ),
-    turnstileBox,
-    errorLine,
-    submitBtn,
+    limitRow,
+    el(
+      "label",
+      { class: "secret-control", for: "secret" },
+      secretBox,
+      el("span", { text: t("secret") }),
+    ),
+    el("div", { class: "toolbar-actions" }, turnstileBox, submitBtn),
   );
-  form.append(editorPanel, settingsRail);
+  const notices = el("div", { class: "form-notices" }, secretHint, limitHint, errorLine);
+  form.append(toolbar, notices, editorPanel);
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -378,8 +349,7 @@ export function renderHome(container: HTMLElement): void {
       return;
     }
 
-    const expiresIn =
-      form.querySelector<HTMLInputElement>("input[name='expiry']:checked")?.value ?? "1d";
+    const expiresIn = expirySelect.value;
     const encrypted = secretBox.checked;
     const burnAfterRead = readLimit !== null;
 
@@ -426,23 +396,7 @@ export function renderHome(container: HTMLElement): void {
     showCreateResult(container, result.data, fragment, encrypted);
   });
 
-  const privacyCard = infoCard("01", t("feat1Title"), t("feat1Desc"), "info-primary");
-  privacyCard.append(
-    el(
-      "dl",
-      { class: "privacy-facts" },
-      el("div", {}, el("dt", { text: "KEY" }), el("dd", { text: "URL fragment" })),
-      el("div", {}, el("dt", { text: "SERVER" }), el("dd", { text: "ciphertext only" })),
-    ),
-  );
-  const infoGrid = el(
-    "section",
-    { class: "info-grid", "aria-label": "Alienbin features" },
-    privacyCard,
-    infoCard("02", t("feat2Title"), t("feat2Desc")),
-    infoCard("03", t("feat3Title"), t("feat3Desc")),
-  );
-  container.append(form, infoGrid);
+  container.append(form);
 
   // Turnstile은 폼 렌더 직후 비동기 준비
   void loadTurnstile(turnstileBox).then((getToken) => {
