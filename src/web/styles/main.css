@@ -569,6 +569,10 @@ button.danger {
   white-space: pre;
 }
 
+.line-numbers span {
+  display: block;
+}
+
 .code-wrap pre {
   min-width: 0;
   margin: 0;
