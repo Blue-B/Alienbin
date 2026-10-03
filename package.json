@@ -25,6 +25,9 @@
     "highlight.js": "^11.10.0",
     "hono": "^4.6.0"
   },
+  "overrides": {
+    "undici": "7.29.1"
+  },
   "devDependencies": {
     "@biomejs/biome": "^2.0.0",
     "@cloudflare/vitest-pool-workers": "^0.22.0",
